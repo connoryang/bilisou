@@ -26,6 +26,7 @@ var username, password, url, address, redis_Pwd, mode, logLevel, redis_db string
 var redis_Database int
 var ConfError error
 var cfg *goconfig.ConfigFile
+
 //Mysql Redis初始化
 func init() {
 	cfg, ConfError = goconfig.LoadConfigFile("config.ini")
@@ -292,6 +293,9 @@ func RedisKeyExists(key interface{}) bool {
 	conn := redisPool.Get()
 	defer conn.Close()
 	result, error := conn.Do("exists", key)
+
+	return false
+
 	if error != nil {
 		log.Error(error.Error())
 		return true
@@ -411,17 +415,29 @@ type uinfo struct {
 	Avatar_url     string
 	Pubshare_count int
 	Album_count    int
+	Fans_count     int
+	Follow_count   int
 }
 
 type feedata struct {
 	Records []records
 }
+
 type records struct {
 	Shareid   string
+	Data_id   string
 	Title     string
 	Feed_type string //专辑：album 文件或者文件夹：share
 	Album_id  string
 	Category  int
+	Feed_time int64
+	Filelist []file
+
+}
+
+type file struct {
+	Server_filename string
+	Size            int64
 }
 
 var nullstart = time.Now().Unix()
@@ -434,8 +450,8 @@ func IndexResource(uk int64) {
 
 		result, _ := HttpGet(real_url, nil)
 
-		yundata := GetData(result)
-		if yundata == nil {
+		yd := GetData(result)
+		if yd == nil {
 			temp := nullstart
 			nullstart = time.Now().Unix()
 			if nullstart - temp < 2 {
@@ -444,28 +460,19 @@ func IndexResource(uk int64) {
 			}
 		} else {
 
-			share_count := yundata.Uinfo.Pubshare_count
-			album_count := yundata.Uinfo.Album_count
+			share_count := yd.Uinfo.Pubshare_count
+			album_count := yd.Uinfo.Album_count
 			if share_count > 0 || album_count > 0 {
 
-				res, err := db.Exec("INSERT into uinfo(uk,uname,avatar_url) values(?,?,?)", uk, yundata.Uinfo.Uname, yundata.Uinfo.Avatar_url)
+				res, err := db.Exec("INSERT into uinfo(uk,uname,avatar_url, pubshare_count, fans_count, follow_count) values(?,?,?,?,?,?)", uk, yd.Uinfo.Uname, yd.Uinfo.Avatar_url, yd.Uinfo.Pubshare_count, yd.Uinfo.Fans_count, yd.Uinfo.Follow_count)
 				checkErr(err)
 				id, err := res.LastInsertId()
 
 				uinfoId = id
 				checkErr(err)
 				log.Info("insert uinfo，uk:", uk, ",uinfoId:", uinfoId)
+				InsertShare(yd)
 
-				for _, v := range yundata.Feedata.Records {
-					if strings.Compare(v.Feed_type, "share") == 0 {
-						db.Exec("insert into sharedata(title,shareid,uinfo_id,category) values(?,?,?,?)", v.Title, v.Shareid, uinfoId, v.Category)
-						log.Info("insert share")
-					} else if strings.Compare(v.Feed_type, "album") == 0 {
-						db.Exec("insert into sharedata(title,album_id,uinfo_id,category) values(?,?,?,?)", v.Title, v.Album_id, uinfoId, v.Category)
-						log.Info("insert album")
-					}
-
-				}
 
 			}
 			totalpage := (share_count + album_count - 1) / 20 + 1
@@ -474,18 +481,9 @@ func IndexResource(uk int64) {
 				index_start = i * 20
 				real_url = fmt.Sprintf(url, uk, index_start)
 				result, _ := HttpGet(real_url, nil)
-				yundata = GetData(result)
-				if yundata != nil {
-					for _, v := range yundata.Feedata.Records {
-						if strings.Compare(v.Feed_type, "share") == 0 {
-							db.Exec("insert into sharedata(title,shareid,uinfo_id,category) values(?,?,?,?)", v.Title, v.Shareid, uinfoId, v.Category)
-							log.Info("insert share")
-						} else if strings.Compare(v.Feed_type, "album") == 0 {
-							db.Exec("insert into sharedata(title,album_id,uinfo_id,category) values(?,?,?,?)", v.Title, v.Album_id, uinfoId, v.Category)
-							log.Info("insert album")
-						}
-					}
-
+				yd = GetData(result)
+				if yd != nil {
+					InsertShare(yd)
 				} else {
 					i--
 					temp := nullstart
@@ -501,6 +499,28 @@ func IndexResource(uk int64) {
 			break
 		}
 
+	}
+}
+
+func InsertShare(yd *yundata) {
+	for _, v := range yd.Feedata.Records {
+		var filenames string
+		var size int64
+		filenames = ""
+		size = 0;
+		for _, f := range v.Filelist {
+			//log.Info("Computing size and filename")
+			size = size + f.Size
+			filenames = filenames + f.Server_filename + "b#i#l#i#s#o#u#"
+		}
+
+		if strings.Compare(v.Feed_type, "share") == 0 {
+			db.Exec("insert into sharedata(title,shareid,uinfo_id,category, data_id, file_names, feed_time, file_count, size) values(?,?,?,?,?,?,?,?,?)", v.Title, v.Shareid, uinfoId, v.Category, v.Data_id, filenames, v.Feed_time, len(v.Filelist), size)
+			log.Info("insert share ", v.Data_id)
+		} else if strings.Compare(v.Feed_type, "album") == 0 {
+			db.Exec("insert into sharedata(title,album_id,uinfo_id,category, data_id, file_names, feed_time, file_count, size) values(?,?,?,?,?,?,?,?,?)", v.Title, v.Album_id, uinfoId, v.Category, v.Data_id, filenames, v.Feed_time, len(v.Filelist), size)
+			log.Info("insert album", v.Data_id)
+		}
 	}
 }
 
@@ -520,6 +540,7 @@ func GetData(res string) *yundata {
 
 func checkErr(err error) {
 	if err != nil {
+		log.Error(err)
 		panic(err.Error())
 	}
 }
