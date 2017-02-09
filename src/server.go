@@ -91,7 +91,10 @@ func Init() {
 func Index(w http.ResponseWriter, r *http.Request) {
 	//w.Write([]byte("Hello, World!"))
 //	fds := GetFileData()
-//	render(w, "templates/index.html", fds)
+	lp := m.GenerateListPageVar(db, 0, 1)
+	render(w, "templates/index.html", lp)
+}
+ender(w, "templates/index.html", fds)
 }
 
 func Greet(w http.ResponseWriter, r *http.Request) {
