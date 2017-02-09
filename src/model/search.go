@@ -4,14 +4,14 @@ import (
 	"fmt"
 )
 
-type SearchVar struct {
+type SearchPageVar struct {
 	Type int
 	Keyword string
 	Page int
-	ShareVars []ShareVar
+	Shares []Share
 }
 
-func GetSearchVar(Type int, Keyword string, Page int) *SearchVar {
+func GenerateSearchPageVar(Type int, Keyword string, Page int) *SearchPageVar {
 	fmt.Println("search var called")
 	return nil
 }

@@ -6,11 +6,10 @@ import (
 	"github.com/gorilla/mux"
 	"net/http"
 	"html/template"
-//	"log"
 	_ "github.com/go-sql-driver/mysql"
 	sql "database/sql"
-//	"io/ioutil"
 	"github.com/siddontang/go/log"
+	"strconv"
 //	"regexp"
 //	"encoding/json"
 //	"time"
@@ -64,24 +63,7 @@ func Init() {
 	if ConfError != nil {
 		log.Error("读取数据库url错误")
 	}
-	/*
-	address, ConfError = cfg.GetValue("Redis", "address")
-	if ConfError != nil {
-		panic("读取数据库address错误")
-	}
-	redis_Pwd, ConfError = cfg.GetValue("Redis", "password")
-	if ConfError != nil {
-		panic("读取Redis password错误")
-	}
-	redis_db, ConfError = cfg.GetValue("Redis", "database")
-	if ConfError != nil {
-		redis_db = "0"
-	}
-	redis_Database, ConfError = strconv.Atoi(redis_db)
-	if ConfError != nil {
-		redis_Database = 0
-	}
-	*/
+
 	var dataSourceName bytes.Buffer
 	dataSourceName.WriteString(username)
 	dataSourceName.WriteString(":")
@@ -97,16 +79,19 @@ func Init() {
 	}
 	db.SetMaxOpenConns(50)
 	db.SetMaxIdleConns(30)
-//	initRedisPool()
-//	initWriteHasIndexKey();
+
+	u.LISTMAX = 300
+	u.PAGEMAX = 20
+	u.NAVMAX = 5
+	u.InitCateMap()
 }
 
 
 
 func Index(w http.ResponseWriter, r *http.Request) {
 	//w.Write([]byte("Hello, World!"))
-	fds := GetFileData()
-	render(w, "templates/index.html", fds)
+//	fds := GetFileData()
+//	render(w, "templates/index.html", fds)
 }
 
 func Greet(w http.ResponseWriter, r *http.Request) {
@@ -116,12 +101,27 @@ func Greet(w http.ResponseWriter, r *http.Request) {
 
 func ListFile(w http.ResponseWriter, r *http.Request) {
 
+	log.Error("wft!!!!")
 	// break down the variables for easier assignment
 	vars := mux.Vars(r)
-	t := vars["type"]
+	cat := vars["category"]
+	cati, ok:= u.CAT_STR_INT[cat]
+	if !ok {
+		log.Info(err)
+		return
+	}
+
 	p := vars["page"]
-	w.Write([]byte(fmt.Sprintf("type is %s ", t)))
-	w.Write([]byte(fmt.Sprintf("page is %s ", p)))
+	pp, err:=strconv.Atoi(p)
+	if err != nil {
+		log.Info(err )
+		return
+	}
+
+
+
+	lp := m.GenerateListPageVar(db, cati, pp)
+	render(w, "templates/index.html", lp)
 }
 
 
@@ -129,9 +129,9 @@ func SearchFile(w http.ResponseWriter, r *http.Request) {
 
 	// break down the variables for easier assignment
 	vars := mux.Vars(r)
-	t := vars["type"]
+	t := vars["category"]
 	kw := vars["keyword"]
-	w.Write([]byte(fmt.Sprintf("type is %s ", t)))
+	w.Write([]byte(fmt.Sprintf("Category is %s ", t)))
 	w.Write([]byte(fmt.Sprintf("keyword is %s ", kw)))
 }
 
@@ -156,12 +156,14 @@ func ShowUser(w http.ResponseWriter, r *http.Request) {
 
 func render(w http.ResponseWriter, filename string, data interface{}) {
 	tmpl, err := template.ParseFiles(filename)
+	log.Error(err)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	if err := tmpl.Execute(w, data); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
+	log.Error(err)
 }
 
 func GetFileData() ([]FileData) {
@@ -180,9 +182,6 @@ func GetFileData() ([]FileData) {
 		var title string
 		err = rows.Scan(&id, &uid, &title)
 		u.CheckErr(err)
-//		fmt.Println(id)
-//		fmt.Println(uid)
-	//	fmt.Println(title)
 		fd := FileData {
 			ID : id,
 			UID : uid,
@@ -215,17 +214,22 @@ func DBTest() {
 }
 
 func main() {
+
 	Init()
-	//DBTest()
-	m.GetShareVar(db, "4696533378915726131")
+
+	lp := m.GenerateListPageVar(db, 0, 30)
+	log.Info(lp.Start)
+	log.Info(lp.End)
+	log.Info(lp.Before)
+	log.Info(lp.After)
 
 	mx := mux.NewRouter()
 
 	mx.HandleFunc("/", Index)
-	mx.HandleFunc("/list/{type}/{page:[0-1000]+}", ListFile)
-	mx.HandleFunc("/search/{type}/{keyword}", SearchFile)
+	mx.HandleFunc("/list/{category}/{page}", ListFile)
+	mx.HandleFunc("/search/{category}/{keyword}", SearchFile)
 	mx.HandleFunc("/file/{id}", ShowFile)
-	mx.HandleFunc("/user/{id}/{page}", ShowUser)
+	mx.HandleFunc("/user/{id}/{page", ShowUser)
 	mx.PathPrefix("/static").Handler(http.FileServer(http.Dir("./")))
 
 	log.Info("Listening...")

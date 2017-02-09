@@ -18,6 +18,7 @@ import (
 	"bufio"
 	"io"
 	"strings"
+	u "utils"
 )
 
 var db *sql.DB
@@ -181,6 +182,11 @@ func main() {
 	var id int64
 	var flag int
 	var uk int64
+
+	//set init header
+	headers = headers3
+	currentheaders = 3
+
 	//GetFollow(2736848922, 0)
 	//可以先存几个热门的用户到数据库表avaiuk中 也可以直接GetFollow(2736848922, 0)爬取
 	mode, ConfError = cfg.GetValue("Mode", "mode")
@@ -375,9 +381,46 @@ type follow_list struct {
 	Follow_uk      int64
 }
 
-var headers = map[string]string{
+var headers map[string]string
+var currentheaders int
+
+var headers1 = map[string]string{
 	"User-Agent":"MQQBrowser/26 Mozilla/5.0 (Linux; U; Android 2.3.7; zh-cn; MB200 Build/GRJ22; CyanogenMod-7) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1",
-	"Referer":"https://yun.baidu.com/share/home?uk=325913312#category/type=0"}
+	"Referer":"https://yun.baidu.com/share/home?uk=325913312#category/type=0",
+}
+
+var headers2 = map[string]string{
+	"User-Agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36",
+	"Referer":"https://pan.baidu.com/wap/share/home?uk=3981641298&start=0&adapt=pc&fr=ftw",
+}
+
+var headers3 = map[string]string{
+	"User-Agent":"IE/8.0 (Windows; Intel Mac OS X 10_12_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36",
+	"Referer":"https://pan.baidu.com/wap/share/home?uk=3111641298&start=0&adapt=pc&fr=ftw",
+}
+
+
+func NextHeaders() {
+	if currentheaders == 1 {
+		headers = headers2
+		currentheaders = 2
+		log.Info("change header to ", currentheaders)
+		return
+	}
+	if currentheaders == 2 {
+		headers = headers3
+		currentheaders = 3
+		log.Info("change header to ", currentheaders)
+		return
+	}
+	if currentheaders == 3 {
+		headers = headers1
+		currentheaders = 1
+		log.Info("change header to ", currentheaders)
+		return
+	}
+}
+
 
 func HttpGet(url string, headers map[string]string) (result string, err error) {
 
@@ -449,9 +492,13 @@ func IndexResource(uk int64) {
 		real_url := fmt.Sprintf(url, uk, 0)
 
 		result, _ := HttpGet(real_url, nil)
+		//result, _ := HttpGet(real_url, headers)
 
-		yd := GetData(result)
+		yd, err := GetData(result)
+		u.CheckErr(err)
 		if yd == nil {
+			log.Warn("No Data for URL ", real_url)
+			NextHeaders()
 			temp := nullstart
 			nullstart = time.Now().Unix()
 			if nullstart - temp < 2 {
@@ -459,6 +506,14 @@ func IndexResource(uk int64) {
 				time.Sleep(50 * time.Second)
 			}
 		} else {
+
+			s := "SELECT * from uinfo where uk = " + u.IntToStr(uk)
+			rows, _ := db.Query(s)
+			if rows.Next() {
+				log.Info("skip user ", uk)
+				continue
+			}
+
 
 			share_count := yd.Uinfo.Pubshare_count
 			album_count := yd.Uinfo.Album_count
@@ -480,12 +535,16 @@ func IndexResource(uk int64) {
 			for i := 1; i < totalpage; i++ {
 				index_start = i * 20
 				real_url = fmt.Sprintf(url, uk, index_start)
+				//result, _ := HttpGet(real_url, headers)
 				result, _ := HttpGet(real_url, nil)
-				yd = GetData(result)
+				yd, err = GetData(result)
+				u.CheckErr(err)
 				if yd != nil {
 					InsertShare(yd)
 				} else {
 					i--
+					log.Warn("No Data for URL ", real_url)
+					//NextHeaders()
 					temp := nullstart
 					nullstart = time.Now().Unix()
 					//2次异常小于2s 被百度限制了 休眠50s
@@ -503,39 +562,58 @@ func IndexResource(uk int64) {
 }
 
 func InsertShare(yd *yundata) {
+
 	for _, v := range yd.Feedata.Records {
+
+
+		s := "SELECT * from sharedata where data_id = '" + v.Data_id + "'"
+		rows, _ := db.Query(s)
+		if rows.Next() {
+			log.Info("skip share ", v.Data_id)
+			continue
+		}
+
 		var filenames string
 		var size int64
 		filenames = ""
 		size = 0;
 		for _, f := range v.Filelist {
-			//log.Info("Computing size and filename")
 			size = size + f.Size
 			filenames = filenames + f.Server_filename + "b#i#l#i#s#o#u#"
 		}
 
+		v.Feed_time = v.Feed_time / 1000
+		ls := time.Now().Unix()
+
 		if strings.Compare(v.Feed_type, "share") == 0 {
-			db.Exec("insert into sharedata(title,shareid,uinfo_id,category, data_id, file_names, feed_time, file_count, size) values(?,?,?,?,?,?,?,?,?)", v.Title, v.Shareid, uinfoId, v.Category, v.Data_id, filenames, v.Feed_time, len(v.Filelist), size)
+			_, err := db.Exec("insert into sharedata(title,share_id,uinfo_id,category, data_id, filenames, feed_time, file_count, size, last_scan) values(?,?,?,?,?,?,?,?,?,?)", v.Title, v.Shareid, uinfoId, v.Category, v.Data_id, filenames, v.Feed_time, len(v.Filelist), size, ls)
+			u.CheckErr(err)
 			log.Info("insert share ", v.Data_id)
 		} else if strings.Compare(v.Feed_type, "album") == 0 {
-			db.Exec("insert into sharedata(title,album_id,uinfo_id,category, data_id, file_names, feed_time, file_count, size) values(?,?,?,?,?,?,?,?,?)", v.Title, v.Album_id, uinfoId, v.Category, v.Data_id, filenames, v.Feed_time, len(v.Filelist), size)
+			_, err := db.Exec("insert into sharedata(title,album_id,uinfo_id,category, data_id, filenames, feed_time, file_count, size, last_scan) values(?,?,?,?,?,?,?,?,?,?)", v.Title, v.Album_id, uinfoId, v.Category, v.Data_id, filenames, v.Feed_time, len(v.Filelist), size, ls)
+			u.CheckErr(err)
 			log.Info("insert album", v.Data_id)
 		}
 	}
 }
 
-func GetData(res string) *yundata {
+func GetData(res string)(*yundata, error) {
+	//log.Error(res)
 	r, _ := regexp.Compile("window.yunData = (.*})")
 	match := r.FindStringSubmatch(res)
 	if len(match) < 1 {
-		return nil
+		log.Warn("No match ")
+		return nil, nil
 	}
 	var yd yundata
-	error := json.Unmarshal([]byte(match[1]), &yd)
-	if error != nil {
-		return nil
+
+	err := json.Unmarshal([]byte(match[1]), &yd)
+//
+	if err != nil {
+		log.Error(err)
+		return nil, err
 	}
-	return &yd
+	return &yd, nil
 }
 
 func checkErr(err error) {
