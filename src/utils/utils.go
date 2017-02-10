@@ -2,7 +2,7 @@ package utils
 
 import (
 
-	//"fmt"
+	"fmt"
 	//	_ "github.com/go-sql-driver/mysql"
 	//sql "database/sql"
 	//	"io/ioutil"
@@ -17,7 +17,7 @@ import (
 	//	"os"
 	//	"bufio"
 	//	"io"
-	//	"strings"
+	s "strings"
 	//m "model"
 	//"utils"
 	"strconv"
@@ -84,4 +84,59 @@ func InitCateMap() {
 	CAT_STR_INT["music"] = 5
 	CAT_STR_INT["picture"] = 6
 	CAT_STR_INT["other"] = 7
+}
+
+func SplitNames(fn string) []string {
+	ss := s.Split(fn, "#i#l#i#s#o#u#")
+	return ss
+}
+
+func SizeToStr(size int64) string {
+
+	if size <= 1024 {
+		return IntToStr(size) + " B"
+	}
+
+	size = size / 1024
+	if size <= 1024 {
+		return IntToStr(size) + " KB"
+	}
+
+	s := float64(size) / 1024
+	if s <= 1024 {
+		return fmt.Sprintf("%.2f", s) + " MB"
+	}
+
+	s = float64(s) / 1024
+	return fmt.Sprintf("%.2f", s) + " GB"
+}
+
+func GetCategoryFromName(name string) int {
+	name = s.ToLower(name)
+
+	if s.Contains(name, "mp4") || s.Contains(name, "mkv") || s.Contains(name, "avi") || s.Contains(name, "wmv") || s.Contains(name, "mpg") ||s.Contains(name, "mpeg")  ||s.Contains(name, "rmvb") ||s.Contains(name, "mov") ||s.Contains(name, "flv"){
+		return 1
+	}
+
+	if s.Contains(name, "torrent") {
+		return 2
+	}
+
+	if s.Contains(name, "apk") || s.Contains(name, "exe") || s.Contains(name, "dmg") {
+		return 3
+	}
+
+	if s.Contains(name, "doc") || s.Contains(name, "ppt") || s.Contains(name, "xls") || s.Contains(name, "txt") || s.Contains(name, "pdf") {
+		return 4
+	}
+
+
+	if s.Contains(name, "wav") || s.Contains(name, "mp3") || s.Contains(name, "m4a") || s.Contains(name, "acc") {
+		return 5
+	}
+
+	if s.Contains(name, "bmp") || s.Contains(name, "jpg") || s.Contains(name, "jpeg") || s.Contains(name, "png") || s.Contains(name, "gif") {
+		return 6
+	}
+	return 7
 }

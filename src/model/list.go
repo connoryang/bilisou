@@ -19,12 +19,12 @@ type ListPageVar struct {
 	Previous int
 	Next   int
 	Shares []Share
-	Users  []User
+	RandomUsers  []User
 	Before []int
 	After  []int
 }
 
-func GenerateListPageVar(db *sql.DB, c int, p int) *ListPageVar{
+func GenerateListPageVar(db *sql.DB, c int, p int) *PageVar{
 
 	if p <= 0 {
 		return nil
@@ -32,63 +32,54 @@ func GenerateListPageVar(db *sql.DB, c int, p int) *ListPageVar{
 	var sql string
 //	var sqlfound string
 
-	lp := ListPageVar{}
+	pv := PageVar{}
+	pv.Type = "list"
 
-	lp.CategoryInt = c
+	pv.CategoryInt = c
 
 	cat, ok := u.CAT_INT_STR[c]
 	if ok {
-		lp.Category = cat
+		pv.Category = cat
 	}
 
 	cat, ok = u.CAT_INT_STRCN[c]
 	if ok {
-		lp.CategoryCN = cat
+		pv.CategoryCN = cat
 	}
 
 
-	lp.Page = p
-	lp.Start = 1
+	pv.Current = p
+	pv.Start = 1
 
 	if c == 0 {
-		sql = "SELECT s.data_id, s.title, s.share_id, s.album_id, u.uname, s.category, s.file_count, s.filenames, s.size, s.feed_time, s.view_count, s.like_count, s.last_scan FROM sharedata as s join uinfo as u on s.uinfo_id = u.id order by last_scan desc limit %d, %d"
-		sql = fmt.Sprintf(sql, (lp.Page - 1) * u.PAGEMAX, u.PAGEMAX)
+		sql = "SELECT s.data_id, s.title, s.share_id, s.album_id, u.uname, s.category, s.file_count, s.filenames, s.size, s.feed_time, s.view_count, s.like_count, s.last_scan, u.uk FROM sharedata as s join uinfo as u on s.uinfo_id = u.id order by last_scan desc limit %d, %d"
+		sql = fmt.Sprintf(sql, (pv.Current - 1) * u.PAGEMAX, u.PAGEMAX)
 //		sqlfound = "SELECT count(s.id)  FROM sharedata as s join uinfo as u on s.uinfo_id = u.id order by last_scan desc"
 //		sqlfound = fmt.Sprintf(sqlfound)
 	} else {
-		sql = "SELECT s.data_id, s.title, s.share_id, s.album_id, u.uname, s.category, s.file_count, s.filenames, s.size, s.feed_time, s.view_count, s.like_count, s.last_scan FROM sharedata as s join uinfo as u on s.uinfo_id = u.id where s.category = %d order by last_scan desc limit %d, %d"
-		sql = fmt.Sprintf(sql, lp.CategoryInt, (lp.Page - 1) * u.PAGEMAX, u.PAGEMAX)
+		sql = "SELECT s.data_id, s.title, s.share_id, s.album_id, u.uname, s.category, s.file_count, s.filenames, s.size, s.feed_time, s.view_count, s.like_count, s.last_scan, u.uk FROM sharedata as s join uinfo as u on s.uinfo_id = u.id where s.category = %d order by last_scan desc limit %d, %d"
+		sql = fmt.Sprintf(sql, pv.CategoryInt, (pv.Current - 1) * u.PAGEMAX, u.PAGEMAX)
 //		sqlfound = "SELECT count(s.id) FROM sharedata as s join uinfo as u on s.uinfo_id = u.id where s.category = %d order by last_scan desc"
 //		sqlfound = fmt.Sprintf(sqlfound, lp.CategoryInt)
 	}
 
 
 	shares := GetShareBySql(db, sql)
+	pv.ListShares = shares
+
 //	found := GetFound(db, sqlfound)
 //	log.Error(found)
 
 //	d := float64(found) / float64(u.PAGEMAX)
 //	lp.End = int(math.Ceil(d))
-	lp.End = 50
-	lp.Previous = lp.Page - 1;
-	lp.Next = lp.Page + 1;
+	pv.End = 50
+	pv.Previous = pv.Current - 1;
+	pv.Next = pv.Current + 1;
+	SetBA(&pv)
 
 
-	for _, s := range shares {
-		lp.Shares = append(lp.Shares, s)
-	}
+	pv.RandomShares = GenerateRandomShares(db, 10, 0, "")
+	pv.RandomUsers = GenerateRandomUsers(db, 24)
 
-	pp := lp.Page - u.NAVMAX
-	for ; (lp.Page > pp) && (pp >= 1); pp ++ {
-		lp.Before = append(lp.Before, pp)
-	}
-
-
-	pp = lp.Page + 1
-	for ; ((lp.Page + u.NAVMAX) >= pp) && (pp <= lp.End); pp ++ {
-		lp.After = append(lp.After, pp)
-	}
-
-
-	return &lp
+	return &pv
 }

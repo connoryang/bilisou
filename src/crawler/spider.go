@@ -19,6 +19,7 @@ import (
 	"io"
 	"strings"
 	u "utils"
+	m "model"
 )
 
 var db *sql.DB
@@ -190,6 +191,9 @@ func main() {
 	//GetFollow(2736848922, 0)
 	//可以先存几个热门的用户到数据库表avaiuk中 也可以直接GetFollow(2736848922, 0)爬取
 	mode, ConfError = cfg.GetValue("Mode", "mode")
+
+	m.UpdateCategory(db)
+
 	if ConfError != nil {
 		panic("读取mode错误")
 	} else {
@@ -526,7 +530,10 @@ func IndexResource(uk int64) {
 				uinfoId = id
 				checkErr(err)
 				log.Info("insert uinfo，uk:", uk, ",uinfoId:", uinfoId)
-				InsertShare(yd)
+				ok := InsertShare(yd)
+				if !ok {
+					continue
+				}
 
 
 			}
@@ -540,7 +547,10 @@ func IndexResource(uk int64) {
 				yd, err = GetData(result)
 				u.CheckErr(err)
 				if yd != nil {
-					InsertShare(yd)
+					ok := InsertShare(yd)
+					if !ok {
+						break
+					}
 				} else {
 					i--
 					log.Warn("No Data for URL ", real_url)
@@ -561,7 +571,7 @@ func IndexResource(uk int64) {
 	}
 }
 
-func InsertShare(yd *yundata) {
+func InsertShare(yd *yundata) bool{
 
 	for _, v := range yd.Feedata.Records {
 
@@ -577,6 +587,7 @@ func InsertShare(yd *yundata) {
 		var size int64
 		filenames = ""
 		size = 0;
+		v.Category = u.GetCategoryFromName(v.Title
 		for _, f := range v.Filelist {
 			size = size + f.Size
 			filenames = filenames + f.Server_filename + "b#i#l#i#s#o#u#"
@@ -588,13 +599,20 @@ func InsertShare(yd *yundata) {
 		if strings.Compare(v.Feed_type, "share") == 0 {
 			_, err := db.Exec("insert into sharedata(title,share_id,uinfo_id,category, data_id, filenames, feed_time, file_count, size, last_scan) values(?,?,?,?,?,?,?,?,?,?)", v.Title, v.Shareid, uinfoId, v.Category, v.Data_id, filenames, v.Feed_time, len(v.Filelist), size, ls)
 			u.CheckErr(err)
+			if err != nil {
+				return false
+			}
 			log.Info("insert share ", v.Data_id)
 		} else if strings.Compare(v.Feed_type, "album") == 0 {
 			_, err := db.Exec("insert into sharedata(title,album_id,uinfo_id,category, data_id, filenames, feed_time, file_count, size, last_scan) values(?,?,?,?,?,?,?,?,?,?)", v.Title, v.Album_id, uinfoId, v.Category, v.Data_id, filenames, v.Feed_time, len(v.Filelist), size, ls)
 			u.CheckErr(err)
+			if err != nil {
+				return false
+			}
 			log.Info("insert album", v.Data_id)
 		}
 	}
+	return true
 }
 
 func GetData(res string)(*yundata, error) {
@@ -606,9 +624,7 @@ func GetData(res string)(*yundata, error) {
 		return nil, nil
 	}
 	var yd yundata
-
 	err := json.Unmarshal([]byte(match[1]), &yd)
-//
 	if err != nil {
 		log.Error(err)
 		return nil, err

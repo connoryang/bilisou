@@ -31,7 +31,6 @@ type FileData struct {
 	Title string
 }
 
-
 var db *sql.DB
 var err error
 var username, password, url, address, redis_Pwd, mode, logLevel, redis_db string
@@ -100,10 +99,8 @@ func Greet(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(fmt.Sprintf("Hello %s !", name)))
 }
 
-func ListFile(w http.ResponseWriter, r *http.Request) {
+func ListShare(w http.ResponseWriter, r *http.Request) {
 
-	log.Error("wft!!!!")
-	// break down the variables for easier assignment
 	vars := mux.Vars(r)
 	cat := vars["category"]
 	cati, ok:= u.CAT_STR_INT[cat]
@@ -113,20 +110,41 @@ func ListFile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	p := vars["page"]
+	if p == "" {
+		p = "1"
+	}
 	pp, err:=strconv.Atoi(p)
 	if err != nil {
 		log.Info(err )
 		return
 	}
+	pv := m.GenerateListPageVar(db, cati, pp)
+	if pv != nil {
+		render(w, "templates/index.html", pv)
+	}
+}
 
+func ListUsers(w http.ResponseWriter, r *http.Request) {
 
+	vars := mux.Vars(r)
 
-	lp := m.GenerateListPageVar(db, cati, pp)
-	render(w, "templates/index.html", lp)
+	p := vars["page"]
+	if p == "" {
+		p = "1"
+	}
+	pp, err:=strconv.Atoi(p)
+	if err != nil {
+		log.Info(err )
+		return
+	}
+	pv := m.GenerateUlistPageVar(db, pp)
+	if pv != nil {
+		render(w, "templates/index.html", pv)
+	}
 }
 
 
-func SearchFile(w http.ResponseWriter, r *http.Request) {
+func SearchShare(w http.ResponseWriter, r *http.Request) {
 
 	// break down the variables for easier assignment
 	vars := mux.Vars(r)
@@ -136,29 +154,42 @@ func SearchFile(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(fmt.Sprintf("keyword is %s ", kw)))
 }
 
-func ShowFile(w http.ResponseWriter, r *http.Request) {
+func ShowShare(w http.ResponseWriter, r *http.Request) {
 
 	// break down the variables for easier assignment
 	vars := mux.Vars(r)
-	id := vars["id"]
-	w.Write([]byte(fmt.Sprintf("file id is %s ", id)))
+	id := vars["dataid"]
+	sp := m.GenerateShareVar(db, id)
+	if sp != nil {
+		render(w, "templates/index.html", sp)
+	}
 }
 
 func ShowUser(w http.ResponseWriter, r *http.Request) {
-
-	// break down the variables for easier assignment
 	vars := mux.Vars(r)
-	id := vars["id"]
-	page := vars["page"]
-	w.Write([]byte(fmt.Sprintf("user id is %s ", id)))
-	w.Write([]byte(fmt.Sprintf("page id is %s ", page)))
+	uk := vars["uk"]
+	p := vars["page"]
+	if p == "" {
+		p = "1"
+	}
+
+	pp, err:=strconv.Atoi(p)
+	if err != nil {
+		log.Info(err )
+		return
+	}
+
+	pv := m.GenerateUserPageVar(db, uk, pp)
+	if pv != nil {
+		render(w, "templates/index.html", pv)
+	}
 }
 
 
 func render(w http.ResponseWriter, filename string, data interface{}) {
 	tmpl, err := template.ParseFiles(filename)
-	log.Error(err)
 	if err != nil {
+		log.Error(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	if err := tmpl.Execute(w, data); err != nil {
@@ -193,44 +224,39 @@ func GetFileData() ([]FileData) {
 	return fds
 }
 
-
-func DBTest() {
-
-	// query
-	rows, err := db.Query("SELECT id, uk, uname, avatar_url FROM uinfo")
-	u.CheckErr(err)
-
-	for rows.Next() {
-		var id int
-		var uk int
-		var username string
-		var avatarurl string
-		err = rows.Scan(&id, &uk, &username, &avatarurl)
-		u.CheckErr(err)
-		fmt.Println(id)
-		fmt.Println(uk)
-		fmt.Println(username)
-		fmt.Println(avatarurl)
-	}
-}
-
 func main() {
 
 	Init()
 
-	lp := m.GenerateListPageVar(db, 0, 30)
-	log.Info(lp.Start)
-	log.Info(lp.End)
-	log.Info(lp.Before)
-	log.Info(lp.After)
-
 	mx := mux.NewRouter()
 
 	mx.HandleFunc("/", Index)
-	mx.HandleFunc("/list/{category}/{page}", ListFile)
-	mx.HandleFunc("/search/{category}/{keyword}", SearchFile)
-	mx.HandleFunc("/file/{id}", ShowFile)
-	mx.HandleFunc("/user/{id}/{page", ShowUser)
+	//list
+	mx.HandleFunc("/list/{category}", ListShare)
+	mx.HandleFunc("/list/{category}/", ListShare)
+	mx.HandleFunc("/list/{category}/{page}", ListShare)
+	mx.HandleFunc("/list/{category}/{page}/", ListShare)
+
+	//ulist
+	mx.HandleFunc("/ulist}", ListUsers)
+	mx.HandleFunc("/ulist}/", ListUsers)
+	mx.HandleFunc("/ulist}/{page}", ListUsers)
+	mx.HandleFunc("/ulist}/{page}/", ListUsers)
+
+	//search
+	mx.HandleFunc("/search/{category}/{keyword}", SearchShare)
+	mx.HandleFunc("/search/{category}/{keyword}/", SearchShare)
+
+	//file
+	mx.HandleFunc("/file/{dataid}", ShowShare)
+	mx.HandleFunc("/file/{dataid}/", ShowShare)
+
+	//user
+	mx.HandleFunc("/user/{uk}", ShowUser)
+	mx.HandleFunc("/user/{uk}/", ShowUser)
+	mx.HandleFunc("/user/{uk}/{page}", ShowUser)
+	mx.HandleFunc("/user/{uk}/{page}/", ShowUser)
+	//server static
 	mx.PathPrefix("/static").Handler(http.FileServer(http.Dir("./")))
 
 	log.Info("Listening...")

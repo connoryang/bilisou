@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"github.com/siddontang/go/log"
 	u "utils"
+	"math/rand"
+	"time"
 )
 
 type Share struct {
@@ -14,10 +16,11 @@ type Share struct {
 	FeedType  string //专辑：album 文件或者文件夹：share
 	AlbumID   string
 	Category  string
+	CategoryInt int
 	CategoryCN  string
 	FeedTime  string
 	Size      string
-	Filenames string
+	Filenames []string
 	FileCount string
 	UK        string
 	Uname     string
@@ -40,6 +43,7 @@ func GetShareBySql(db *sql.DB, s string) ([]Share){
 	var vc sql.NullInt64
 	var lc sql.NullInt64
 	var ls sql.NullInt64
+	var uk sql.NullInt64
 
 	log.Info(s)
 	rows, err := db.Query(s)
@@ -49,7 +53,7 @@ func GetShareBySql(db *sql.DB, s string) ([]Share){
 
 	for rows.Next() {
 		sv := Share{}
-		err = rows.Scan(&dataid, &title, &shareid, &albumid, &uname, &category, &fc, &filenames, &size, &feedtime, &vc, &lc, &ls)
+		err = rows.Scan(&dataid, &title, &shareid, &albumid, &uname, &category, &fc, &filenames, &size, &feedtime, &vc, &lc, &ls, &uk)
 
 		u.CheckErr(err)
 
@@ -83,6 +87,13 @@ func GetShareBySql(db *sql.DB, s string) ([]Share){
 			sv.Uname = ""
 		}
 
+
+		if category.Valid {
+			sv.CategoryInt = int(category.Int64)
+		} else {
+			sv.CategoryInt = 0
+		}
+
 		if category.Valid {
 			//sv.Category = u.IntToStr(category.Int64)
 			cat, ok := u.CAT_INT_STR[int(category.Int64)]
@@ -104,6 +115,14 @@ func GetShareBySql(db *sql.DB, s string) ([]Share){
 			sv.Category = ""
 		}
 
+
+		if filenames.Valid {
+			sv.Filenames = u.SplitNames(filenames.String)
+		} else {
+			sv.Filenames = []string{}
+		}
+
+
 		if fc.Valid {
 			sv.FileCount = u.IntToStr(fc.Int64)
 		} else {
@@ -111,7 +130,7 @@ func GetShareBySql(db *sql.DB, s string) ([]Share){
 		}
 
 		if size.Valid {
-			sv.Size = u.IntToStr(size.Int64)
+			sv.Size = u.SizeToStr(size.Int64)
 		} else {
 			sv.Size = "0"
 		}
@@ -142,7 +161,11 @@ func GetShareBySql(db *sql.DB, s string) ([]Share){
 			sv.LastScan = "0"
 		}
 
-		fmt.Println(sv)
+		if uk.Valid {
+			sv.UK = u.IntToStr(uk.Int64)
+		} else {
+			sv.UK = "0"
+		}
 		shares = append(shares, sv)
 	}
 	return shares
@@ -169,7 +192,170 @@ type User struct {
 	Intro       string
 }
 
-func GetUserBySql(category int, Keyword string, Page int) *User{
-	fmt.Println("search share var called")
-	return nil
+func GetUserBySql(db *sql.DB, s string) ([]User){
+	var UK          sql.NullInt64
+	var Uname       sql.NullString
+	var FansCount   sql.NullInt64
+	var FollowCount sql.NullInt64
+	var PubshareCount    sql.NullInt64
+	var AvatarURL   sql.NullString
+	var Intro       sql.NullString
+
+
+	log.Info(s)
+	rows, err := db.Query(s)
+	u.CheckErr(err)
+
+	users := []User{}
+	for rows.Next() {
+		user := User{}
+		err = rows.Scan(&UK, &Uname, &AvatarURL, &FansCount, &FollowCount, &PubshareCount, &Intro)
+
+		if Uname.Valid {
+			user.Uname = Uname.String
+		} else {
+			user.Uname = ""
+		}
+
+		if AvatarURL.Valid {
+			user.AvatarURL = AvatarURL.String
+		} else {
+			user.AvatarURL = ""
+		}
+
+		if Intro.Valid {
+			user.Intro = Intro.String
+		} else {
+			user.Intro = ""
+		}
+
+		if UK.Valid {
+			user.UK = u.IntToStr(UK.Int64)
+		} else {
+			user.UK = "0"
+		}
+
+		if FollowCount.Valid {
+			user.FollowCount = u.IntToStr(FollowCount.Int64)
+		} else {
+			user.FollowCount = "0"
+		}
+
+		if FansCount.Valid {
+			user.FansCount = u.IntToStr(FansCount.Int64)
+		} else {
+			user.FansCount = "0"
+		}
+
+		if PubshareCount.Valid {
+			user.PubshareCount = u.IntToStr(PubshareCount.Int64)
+		} else {
+			user.PubshareCount = "0"
+		}
+		users = append(users, user)
+
+	}
+
+	return users
+}
+
+func GetShareMaxMinID(db *sql.DB) (int, int) {
+	var max int
+	var min int
+	sql := "select max(id), min(id) from sharedata"
+	rows, err := db.Query(sql)
+	u.CheckErr(err)
+	for rows.Next() {
+		err = rows.Scan(&max, &min)
+	}
+	return max, min
+}
+
+func GetUserMaxMINID(db *sql.DB) (int, int) {
+	var max int
+	var min int
+	sql := "select max(id), min(id) from uinfo"
+	rows, err := db.Query(sql)
+	u.CheckErr(err)
+	for rows.Next() {
+		err = rows.Scan(&max, &min)
+	}
+	return max, min
+}
+
+func GenerateRandomShares(db *sql.DB, size int, category int, keyword string) []Share {
+	max, min := GetShareMaxMinID(db)
+	rs := []string{}
+	for i := 0; i < size; i ++ {
+		rand.Seed(time.Now().UnixNano())
+		r := u.IntToStr(int64(rand.Intn(max - min) + min))
+		rs = append(rs, r)
+	}
+
+	s := "SELECT s.data_id, s.title, s.share_id, s.album_id, u.uname, s.category, s.file_count, s.filenames, s.size, s.feed_time, s.view_count, s.like_count, s.last_scan, u.uk FROM sharedata as s join uinfo as u on s.uinfo_id = u.id where s.id in ("
+	for v, r := range rs {
+		if v == (len(rs) - 1) {
+			s = s + r
+		} else {
+			s = s + r + ", "
+		}
+	}
+	s = s + ")"
+	shares := GetShareBySql(db, s)
+	return shares
+}
+
+
+func GenerateRandomUsers(db *sql.DB, size int) []User {
+	max, min := GetUserMaxMINID(db)
+	rs := []string{}
+	for i := 0; i < size; i ++ {
+		rand.Seed(time.Now().UnixNano())
+		r := u.IntToStr(int64(rand.Intn(max - min) + min))
+		rs = append(rs, r)
+	}
+
+	s := "select uk, uname, avatar_url, fans_count, follow_count, pubshare_count, intro from uinfo where id in ("
+	for v, r := range rs {
+		if v == (len(rs) - 1) {
+			s = s + r
+		} else {
+			s = s + r + ", "
+		}
+	}
+	s = s + ")"
+	users := GetUserBySql(db, s)
+	return users
+}
+
+
+func UpdateCategory(db *sql.DB) {
+	max, min := GetShareMaxMinID(db)
+	for i:=min; i <= max; i ++ {
+		s := "select title from sharedata where id = %d"
+
+		s = fmt.Sprintf(s, i)
+		rows, err := db.Query(s)
+
+		u.CheckErr(err)
+		var tt sql.NullString
+
+		for rows.Next() {
+			err = rows.Scan(&tt)
+		}
+		if tt.Valid {
+			c := u.GetCategoryFromName(tt.String)
+			us := "update sharedata set category = ? where id = ?"
+			//us = fmt.Sprintf(us, c, i)
+			//db.Query(us)
+			stmt, _ := db.Prepare(us)
+			stmt.Exec(c,i)
+			stmt.Close()
+			//res.RowsAffected()
+
+			//db.Exec(us)
+			log.Info(us)
+		}
+	}
+	log.Info("ajl")
 }
