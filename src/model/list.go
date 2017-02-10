@@ -53,22 +53,23 @@ func GenerateListPageVar(db *sql.DB, c int, p int) *ListPageVar{
 	if c == 0 {
 		sql = "SELECT s.data_id, s.title, s.share_id, s.album_id, u.uname, s.category, s.file_count, s.filenames, s.size, s.feed_time, s.view_count, s.like_count, s.last_scan FROM sharedata as s join uinfo as u on s.uinfo_id = u.id order by last_scan desc limit %d, %d"
 		sql = fmt.Sprintf(sql, (lp.Page - 1) * u.PAGEMAX, u.PAGEMAX)
-		sqlfound = "SELECT count(s.id)  FROM sharedata as s join uinfo as u on s.uinfo_id = u.id order by last_scan desc"
-		sqlfound = fmt.Sprintf(sqlfound)
+//		sqlfound = "SELECT count(s.id)  FROM sharedata as s join uinfo as u on s.uinfo_id = u.id order by last_scan desc"
+//		sqlfound = fmt.Sprintf(sqlfound)
 	} else {
 		sql = "SELECT s.data_id, s.title, s.share_id, s.album_id, u.uname, s.category, s.file_count, s.filenames, s.size, s.feed_time, s.view_count, s.like_count, s.last_scan FROM sharedata as s join uinfo as u on s.uinfo_id = u.id where s.category = %d order by last_scan desc limit %d, %d"
 		sql = fmt.Sprintf(sql, lp.CategoryInt, (lp.Page - 1) * u.PAGEMAX, u.PAGEMAX)
-		sqlfound = "SELECT count(s.id) FROM sharedata as s join uinfo as u on s.uinfo_id = u.id where s.category = %d order by last_scan desc"
-		sqlfound = fmt.Sprintf(sqlfound, lp.CategoryInt)
+//		sqlfound = "SELECT count(s.id) FROM sharedata as s join uinfo as u on s.uinfo_id = u.id where s.category = %d order by last_scan desc"
+//		sqlfound = fmt.Sprintf(sqlfound, lp.CategoryInt)
 	}
 
 
-	shares := GetShareBySql(db, sql)
-	found := GetFound(db, sqlfound)
-	log.Error(found)
+//	shares := GetShareBySql(db, sql)
+//	found := GetFound(db, sqlfound)
+//	log.Error(found)
 
-	d := float64(found) / float64(u.PAGEMAX)
-	lp.End = int(math.Ceil(d))
+//	d := float64(found) / float64(u.PAGEMAX)
+//	lp.End = int(math.Ceil(d))
+	lp.End = 50
 	lp.Previous = lp.Page - 1;
 	lp.Next = lp.Page + 1;
 

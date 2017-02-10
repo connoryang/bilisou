@@ -532,7 +532,7 @@ func IndexResource(uk int64) {
 			}
 			totalpage := (share_count + album_count - 1) / 20 + 1
 			var index_start = 0
-			for i := 1; i < totalpage; i++ {
+			for i := 1; i < 450 && i < totalpage; i++ {
 				index_start = i * 20
 				real_url = fmt.Sprintf(url, uk, index_start)
 				//result, _ := HttpGet(real_url, headers)
