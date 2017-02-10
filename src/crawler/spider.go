@@ -587,7 +587,7 @@ func InsertShare(yd *yundata) bool{
 		var size int64
 		filenames = ""
 		size = 0;
-		v.Category = u.GetCategoryFromName(v.Title
+		v.Category = u.GetCategoryFromName(v.Title)
 		for _, f := range v.Filelist {
 			size = size + f.Size
 			filenames = filenames + f.Server_filename + "b#i#l#i#s#o#u#"
