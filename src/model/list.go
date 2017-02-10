@@ -3,9 +3,9 @@ package model
 import (
 	"fmt"
 	u "utils"
-	"github.com/siddontang/go/log"
+//	"github.com/siddontang/go/log"
 	"database/sql"
-	"math"
+//	"math"
 )
 
 
@@ -63,7 +63,7 @@ func GenerateListPageVar(db *sql.DB, c int, p int) *ListPageVar{
 	}
 
 
-//	shares := GetShareBySql(db, sql)
+	shares := GetShareBySql(db, sql)
 //	found := GetFound(db, sqlfound)
 //	log.Error(found)
 
