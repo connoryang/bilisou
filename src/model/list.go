@@ -30,7 +30,7 @@ func GenerateListPageVar(db *sql.DB, c int, p int) *ListPageVar{
 		return nil
 	}
 	var sql string
-	var sqlfound string
+//	var sqlfound string
 
 	lp := ListPageVar{}
 

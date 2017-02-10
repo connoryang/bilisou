@@ -94,8 +94,6 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	lp := m.GenerateListPageVar(db, 0, 1)
 	render(w, "templates/index.html", lp)
 }
-ender(w, "templates/index.html", fds)
-}
 
 func Greet(w http.ResponseWriter, r *http.Request) {
 	name := mux.Vars(r)["name"]
