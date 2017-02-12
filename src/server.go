@@ -23,6 +23,7 @@ import (
 //	"strings"
 	m "model"
 	u "utils"
+	es "gopkg.in/olivere/elastic.v3"
 )
 
 type FileData struct {
@@ -36,9 +37,10 @@ var err error
 var username, password, url, address, redis_Pwd, mode, logLevel, redis_db string
 var redis_Database int
 var ConfError error
+var esclient *es.Client
 var cfg *goconfig.ConfigFile
 
-//Mysql Redis初始化
+//Mysql Redis ES init
 func Init() {
 	cfg, ConfError = goconfig.LoadConfigFile("config.ini")
 	if ConfError != nil {
@@ -83,15 +85,24 @@ func Init() {
 	u.PAGEMAX = 20
 	u.NAVMAX = 5
 	u.InitCateMap()
+
+	//init es
+	esclient, err = es.NewClient()
+	if err != nil {
+		log.Error("failed to create es client")
+	}
+	m.TotalShares = m.GetTotalShares(esclient)
+	m.TotalUsers = m.GetTotalUsers(esclient)
 }
 
 
 
 func Index(w http.ResponseWriter, r *http.Request) {
-	//w.Write([]byte("Hello, World!"))
-//	fds := GetFileData()
-	lp := m.GenerateListPageVar(db, 0, 1)
-	render(w, "templates/index.html", lp)
+	pv := m.GenerateListPageVar(esclient, 0, 1)
+	if pv != nil {
+		render(w, "templates/index.html", pv)
+	}
+
 }
 
 func Greet(w http.ResponseWriter, r *http.Request) {
@@ -118,16 +129,15 @@ func ListShare(w http.ResponseWriter, r *http.Request) {
 		log.Info(err )
 		return
 	}
-	pv := m.GenerateListPageVar(db, cati, pp)
+	pv := m.GenerateListPageVar(esclient, cati, pp)
 	if pv != nil {
 		render(w, "templates/index.html", pv)
 	}
 }
 
 func ListUsers(w http.ResponseWriter, r *http.Request) {
-
+	log.Info("http requst", r)
 	vars := mux.Vars(r)
-
 	p := vars["page"]
 	if p == "" {
 		p = "1"
@@ -137,7 +147,7 @@ func ListUsers(w http.ResponseWriter, r *http.Request) {
 		log.Info(err )
 		return
 	}
-	pv := m.GenerateUlistPageVar(db, pp)
+	pv := m.GenerateUlistPageVar(esclient, pp)
 	if pv != nil {
 		render(w, "templates/index.html", pv)
 	}
@@ -146,12 +156,37 @@ func ListUsers(w http.ResponseWriter, r *http.Request) {
 
 func SearchShare(w http.ResponseWriter, r *http.Request) {
 
-	// break down the variables for easier assignment
 	vars := mux.Vars(r)
-	t := vars["category"]
-	kw := vars["keyword"]
-	w.Write([]byte(fmt.Sprintf("Category is %s ", t)))
-	w.Write([]byte(fmt.Sprintf("keyword is %s ", kw)))
+	cat := vars["category"]
+	cati, ok:= u.CAT_STR_INT[cat]
+	if !ok {
+		log.Info(err)
+		return
+	}
+
+
+	keyword := vars["keyword"]
+	if keyword == "" {
+		log.Info(err)
+		return
+	}
+
+	p := vars["page"]
+	if p == "" {
+		p = "1"
+	}
+
+	pp, err:=strconv.Atoi(p)
+	if err != nil {
+		log.Info(err )
+		return
+	}
+
+	m.KeywordHit(db,keyword)
+	pv := m.GenerateSearchPageVar(esclient, cati, keyword, pp)
+	if pv != nil {
+		render(w, "templates/index.html", pv)
+	}
 }
 
 func ShowShare(w http.ResponseWriter, r *http.Request) {
@@ -159,7 +194,7 @@ func ShowShare(w http.ResponseWriter, r *http.Request) {
 	// break down the variables for easier assignment
 	vars := mux.Vars(r)
 	id := vars["dataid"]
-	sp := m.GenerateShareVar(db, id)
+	sp := m.GenerateSharePageVar(esclient, id)
 	if sp != nil {
 		render(w, "templates/index.html", sp)
 	}
@@ -179,7 +214,7 @@ func ShowUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pv := m.GenerateUserPageVar(db, uk, pp)
+	pv := m.GenerateUserPageVar(esclient, uk, pp)
 	if pv != nil {
 		render(w, "templates/index.html", pv)
 	}
@@ -228,6 +263,9 @@ func main() {
 
 	Init()
 
+	ks := m.GenerateRandomKeywords(esclient, 10)
+	log.Info(ks)
+
 	mx := mux.NewRouter()
 
 	mx.HandleFunc("/", Index)
@@ -238,14 +276,17 @@ func main() {
 	mx.HandleFunc("/list/{category}/{page}/", ListShare)
 
 	//ulist
-	mx.HandleFunc("/ulist}", ListUsers)
-	mx.HandleFunc("/ulist}/", ListUsers)
-	mx.HandleFunc("/ulist}/{page}", ListUsers)
-	mx.HandleFunc("/ulist}/{page}/", ListUsers)
+	mx.HandleFunc("/ulist", ListUsers)
+	mx.HandleFunc("/ulist/", ListUsers)
+	mx.HandleFunc("/ulist/{page}", ListUsers)
+	mx.HandleFunc("/ulist/{page}/", ListUsers)
 
 	//search
+	mx.HandleFunc("/search/{keyword}", SearchShare)
 	mx.HandleFunc("/search/{category}/{keyword}", SearchShare)
 	mx.HandleFunc("/search/{category}/{keyword}/", SearchShare)
+	mx.HandleFunc("/search/{category}/{keyword}/{page}", SearchShare)
+	mx.HandleFunc("/search/{category}/{keyword}/{page}/", SearchShare)
 
 	//file
 	mx.HandleFunc("/file/{dataid}", ShowShare)

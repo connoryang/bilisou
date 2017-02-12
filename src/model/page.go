@@ -16,6 +16,7 @@ type PageVar struct {
 	CategoryInt   int
 	Category      string
 	CategoryCN    string
+	Keyword       string
 
 	//for paging
 	Current       int
@@ -29,6 +30,7 @@ type PageVar struct {
 
 	User              User
 	Share             Share
+	SearchShares        []Share
 	ListShares        []Share
 	ListUsers         []User
 	RandomUsers       []User
@@ -36,11 +38,23 @@ type PageVar struct {
 	RandomShares      []Share
 	RandomSharesCategory      []Share
 	RandomSharesSimilar      []Share
-
+	Keywords          []Keyword
 }
 
 func SetBA(pv *PageVar) {
+	if(pv.Current > 2) {
+		pv.Previous = pv.Current - 1;
+	}
+	if pv.Next < pv.End {
+		pv.Next = pv.Current + 1
+	}
+
 	pp := pv.Current - u.NAVMAX
+
+	if pp < 0 {
+		pp = 1
+	}
+
 	for ; (pv.Current > pp) && (pp >= 1); pp ++ {
 		pv.Before = append(pv.Before, pp)
 	}

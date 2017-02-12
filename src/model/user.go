@@ -1,29 +1,53 @@
 package model
 
 import (
-	"fmt"
-	u "utils"
-	//	"github.com/siddontang/go/log"
-	"database/sql"
-	"math"
+//	"fmt"
+//	u "utils"
+//	"github.com/siddontang/go/log"
+//	"database/sql"
+//	"math"
+	es "gopkg.in/olivere/elastic.v3"
 )
 
-type UserPageVar struct {
-	Page   int
-	Start  int
-	End    int
-	Previous int
-	Next   int
-	Before []int
-	After  []int
 
-	User        User
-	Shares      []Share
-	RandomUsers  []User
-	RandomShares []Share
+func GenerateUserPageVar(esclient *es.Client, uk string, page int) *PageVar {
+	if page <= 0 {
+		return nil
+	}
+
+	pv := PageVar{}
+	pv.Type = "user"
+
+	query := es.NewTermQuery("uk", uk)
+	users, size := SearchUser(esclient, query, 0, 1)
+
+	if len(users) < 1 {
+		//return nil
+		pv.Type = "lost"
+	} else {
+		pv.User = users[0]
+	}
+
+	query = es.NewTermQuery("uk", uk)
+	pv.UserShares, size = SearchShare(esclient, query, page, 20, "last_scan")
+	//if size == 0 {
+		//return nil
+	//}
+
+	pv.Current = page
+	pv.End = int(size) / 20 + 1
+
+	SetBA(&pv)
+
+	pv.RandomShares = GenerateRandomShares(esclient, 0, 10, "")
+	pv.RandomUsers = GenerateRandomUsers(esclient, 24)
+	pv.Keywords = GenerateRandomKeywords(esclient, 30)
+
+	return &pv
 }
 
-func GenerateUserPageVar(db *sql.DB, uk string, p int) *PageVar{
+/*
+func GenerateUserPageVar1(db *sql.DB, uk string, p int) *PageVar{
 	pv := PageVar{}
 	pv.Type = "user"
 
@@ -64,3 +88,4 @@ func GenerateUserPageVar(db *sql.DB, uk string, p int) *PageVar{
 	return &pv
 
 }
+*/

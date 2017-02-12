@@ -2,31 +2,42 @@
    <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
-      <title>{{.Share.Title}} - 哔哩搜 - 速度最快资源最多的百度网盘搜索神器</title>
+      <title>{{.Share.Title}} - 哔哩搜 - 百度网盘搜索引擎</title>
       <meta name="description" content="">
       <link href="/static/img/search.ico" rel="shortcut icon">
       <link rel="stylesheet" href="http://bdimg.share.baidu.com/static/api/css/share_style0_32.css?v=4413acf0.css">
       <link rel="stylesheet" href="/static/css/style.css">
+      <script>
+         function search() {
+            console.log("hahah")
+            var si = document.getElementById("searchinput");
+            window.location.href="/search/all/" + si.value;
+         }
+         function keyLogin(){
+          if (event.keyCode==13)  //回车键的键值为13
+            document.getElementById("searchbutton").click(); //调用登录按钮的登录事件
+         }
+      </script>
    </head>
-   <body data-gr-c-s-loaded="true">
+   <body data-gr-c-s-loaded="true" onkeydown="keyLogin();">
       <div class="container">
          <div class="top">
             <div class="logo">
-               <h1><a href="/" title="找资源上哔哩搜索，速度最快资源最多的网盘搜索神器" id="logo" data-hveid="3"><img src="/static/img/logo.jpg" alt="bilisou.com"></a></h1>
+               <h1><a href="/" title="找片找资源上哔哩搜，速度最快资源最多的网盘搜索神器" id="logo" data-hveid="3"><img src="/static/img/logo.jpg" alt="bilisou.com"></a></h1>
             </div>
             <div class="form">
-               <form class="tsf" action="/all" style="overflow:visible" method="GET" name="f" onsubmit="return q.value!=''" role="search">
+               <!--<form class="tsf" action="/all" style="overflow:visible" method="GET" name="f" onsubmit="return q.value!=''" role="search"> -->
                   <div class="out">
-                     <button class="submit" value="Google 搜索" aria-label="Google 搜索" id="_fZl" type="submit">
+                     <button class="submit" value="Google 搜索" aria-label="Google 搜索" onclick="search()" id="searchbutton">
                         <span class="sbico _wtf _Qtf">
                            <svg focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                              <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path>
+                              <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path> 
                            </svg>
                         </span>
                      </button>
-                     <div class="inner"><input class="query" id="lst-ib" maxlength="2048" name="q" autocomplete="off" title="网盘搜索" type="text" value="" aria-label="搜索" aria-haspopup="false" role="combobox" aria-autocomplete="both" dir="ltr" spellcheck="false" style=""></div>
+                     <div class="inner"><input class="query" id="searchinput" maxlength="2048" name="q" autocomplete="off" title="网盘搜索" type="text" value="{{.Keyword}}" aria-label="搜索" aria-haspopup="false" role="combobox" aria-autocomplete="both" dir="ltr" spellcheck="false" style=""></div>
                   </div>
-               </form>
+               <!--</form> -->
             </div>
          </div>
          <div class="nav">
@@ -44,16 +55,22 @@
          <div class="main">
             <div class="content">
                <div class="sep15">
-                  <!--
                   <div class="share-bar">
                      <span class="share-hint">好东西记得分享：</span>
                      <div class="bdsharebuttonbox bdshare-button-style0-32" data-bd-bind="1486665154621"><a title="收藏到QQ空间" href="#" class="bds_qzone" data-cmd="qzone"></a> <a title="收藏到新浪微博" href="#" class="bds_tsina" data-cmd="tsina"></a> <a title="收藏到腾讯微博" href="#" class="bds_tqq" data-cmd="tqq"></a> <a title="收藏到百度新首页" href="#" class="bds_bdhome" data-cmd="bdhome"></a> <a title="收藏到百度空间" href="#" class="bds_hi" data-cmd="hi"></a> <a title="收藏到百度贴吧" href="#" class="bds_tieba" data-cmd="tieba"></a> <a title="收藏到人人网" href="#" class="bds_renren" data-cmd="renren"></a> <a title="收藏到腾讯朋友" href="#" class="bds_tqf" data-cmd="tqf"></a> <a title="收藏到百度搜藏" href="#" class="bds_baidu" data-cmd="baidu"></a> <a title="收藏到QQ收藏" href="#" class="bds_qq" data-cmd="qq"></a> <a title="收藏到豆瓣" href="#" class="bds_douban" data-cmd="douban"></a> <a title="复制网址" href="#" class="bds_copy" data-cmd="copy"></a> <a class="bds_more" data-cmd="more"></a> <a class="bds_count" data-cmd="count" title="累计分享0次">0</a></div>
                      <br class="bothall">
                   </div>
                   <script>window._bd_share_config={"common":{"bdText":"哔哩搜索，资源最多速度最快的网盘资源下载第一站。视频，小说，音乐，图片和软件等各类资源下载，应有尽有，来看看吧！","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"0","bdSize":"32"},"share":{}};</script>
-                  -->
                </div>
 
+
+<!--- list page --->
+               {{if eq .Type  "lost"}}
+                <h1>您查找页面也许去火星了。。。。</h1>
+               {{end}}
+<!--- list page end -->
+
+<!--- list page --->
                {{if eq .Type  "list"}}
                <div class="took">当前位置： 首页</div>
                <div class="took">最新收录 20 资源</div>
@@ -69,9 +86,58 @@
                      </div>
                   </div>
                   {{ end }}
-
                </div>
                {{end}}
+<!--- list page end -->
+
+<!--- search page --->
+               {{if eq .Type  "search"}}
+               <div class="took">当前位置： 首页</div>
+               <div class="took">搜索结果</div>
+               <div id="res">
+                    
+                  {{ range $i, $s := .SearchShares}}
+                  <div class="g">
+                     <div class="rc">
+                        <h3 class="r"><a href="/file/{{$s.DataID}}" target="_blank">{{ $s.Title }}</a></h3>
+                        <div class="s">
+                           <div><span class="st"><span>文件大小：</span> {{$s.Size}} </span> <span class="st"><span>文件类型：</span> <span class="u"><a target="_blank" href="/list/{{$s.Category}}">{{$s.CategoryCN}}</a></span></span> <span class="st"><span>文件总数：</span> {{$s.FileCount}}</span> <span class="st"><span>浏览次数：</span> {{$s.ViewCount}}</span> <span class="st"><span>分享用户：</span> <span class="u"><a target="_blank" href="/user/{{$s.UK}}">{{$s.Uname}}</a></span></span> <span class="st"><span>更新日期：</span> {{$s.LastScan}}</span></div>
+                        </div>
+                     </div>
+                  </div>
+                  {{ end }}
+               </div>
+               {{end}}
+<!--- search page end -->
+<!-- ulist start -->
+
+               {{if eq .Type  "ulist"}}
+               <div class="took">当前位置： 用户列表</div>
+               <div id="res">
+                    
+                  {{ range $i, $u := .ListUsers}}
+                  <div class="g">
+                     <div class="rc">
+                        <div class="s">
+                           <div>
+                              <img class="avatar" src="{{$u.AvatarURL}}" onerror="this.src='/images/avatar.jpg'" />
+                              <span>分享资源：{{$u.PubshareCount}}</span> 
+                              <span>专辑：0</span> 
+                              <span>粉丝：{{$u.FansCount}}</span> 
+                              <span>关注：{{$u.FollowCount}}</span> 
+                              <span class="u"><a target="_blank" href="/user/{{$u.UK}}/">跳转{{$u.Uname}}完整分享页</a></span>
+                              <p>简介：{{$u.Intro}}</p>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+                  
+                  {{ end }}
+               </div>
+               {{end}}
+
+
+     <!-- ulist end-->
 
                {{if eq .Type "share"}}
                <div class="took">当前位置：{{.Share.Title}}的文件分享页面</div>
@@ -99,14 +165,7 @@
                   </div>
                   {{ end }}
                </div>
-               
-               <div id="navcnt">
-                  <table role="presentation">
-                     <tbody>
-                        <tr valign="top"></tr>
-                     </tbody>
-                  </table>
-               </div>
+
             </div>
             <div class="sidebar">
                <div class="title">
@@ -134,7 +193,7 @@
                {{end}}
 
 
-
+<!-- user info -->
 
                {{if eq .Type "user"}}               
                <div class="took">当前位置： {{.User.Uname}}的分享页</div>
@@ -146,7 +205,7 @@
                </div>
                <div id="res">
 
-                  {{ range $i, $s := .ListShares}}
+                  {{ range $i, $s := .UserShares}}
                   <div class="g">
                      <div class="rc">
                         <h3 class="r"><a href="/file/{{$s.DataID}}" target="_blank">{{ $s.Title }}</a></h3>
@@ -159,7 +218,136 @@
                </div>
                {{end}}
 
+<!-- user info end -->
 
+
+
+<!-- search paging -->
+               {{if eq .Type "search"}}
+               <div id="navcnt">
+                  <table role="presentation">
+                     <tbody>
+                        <tr valign="top">
+                           
+                           <td> <a class="fl" href="/{{.Type}}/{{.Category}}/{{.Keyword}}/1"><span>首页</span></a> </td>
+                           <td><a class="fl" href="/{{.Type}}/{{.Category}}/{{.Keyword}}/{{.Previous}}"><span>上一页</span></a></td>
+
+                           {{ range $i, $b := .Before }}
+                           <td><a class="fl" href="/{{$.Type}}/{{$.Category}}/{{$.Keyword}}/{{$b}}"><span>{{$b}}</span></a></td>
+                           {{ end }}
+
+                           <td> <span class="fl current">{{.Current}}</span> </td>
+                           
+                           {{ range $i, $a := .After }}
+                           <td><a class="fl" href="/{{$.Type}}/{{$.Category}}/{{$.Keyword}}/{{$a}}"><span>{{$a}}</span></a></td>
+                           {{ end }}
+                                                      
+                           <td> <a class="fl" href="/{{.Type}}/{{.Category}}/{{.Keyword}}/{{.Next}}"><span>下一页</span></a> </td>
+                           <td><a class="fl" href="/{{.Type}}/{{.Category}}/{{.Keyword}}/{{.End}}"><span>末页</span></a></td>
+
+                        </tr>
+                     </tbody>
+                  </table>
+               </div>
+               {{end}}
+<!-- search paging -->
+
+
+
+<!-- user  paging -->
+               
+               {{if  (eq .Type "user")  }}
+               <div id="navcnt">
+                  <table role="presentation">
+                     <tbody>
+                        <tr valign="top">
+                           
+                           <td> <a class="fl" href="/{{.Type}}/{{.User.UK}}/1"><span>首页</span></a> </td>
+                           <td><a class="fl" href="/{{.Type}}/{{.User.UK}}/{{.Previous}}"><span>上一页</span></a></td>
+
+                           {{ range $i, $b := .Before }}
+                           <td><a class="fl" href="/{{$.Type}}/{{$.User.UK}}/{{$b}}"><span>{{$b}}</span></a></td>
+                           {{ end }}
+
+                           <td> <span class="fl current">{{.Current}}</span> </td>
+                           
+                           {{ range $i, $a := .After }}
+                           <td><a class="fl" href="/{{$.Type}}/{{$.User.UK}}/{{$a}}"><span>{{$a}}</span></a></td>
+                           {{ end }}
+                                                      
+                           <td> <a class="fl" href="/{{.Type}}/{{.User.UK}}/{{.Next}}"><span>下一页</span></a> </td>
+                           <td><a class="fl" href="/{{.Type}}/{{.User.UK}}/{{.End}}"><span>末页</span></a></td>
+
+                        </tr>
+                     </tbody>
+                  </table>
+               </div>
+               {{end}}
+
+ <!--- User end -->
+
+<!-- list paging -->
+               
+               {{if  (eq .Type "list") }}
+               <div id="navcnt">
+                  <table role="presentation">
+                     <tbody>
+                        <tr valign="top">
+                           
+                           <td> <a class="fl" href="/{{.Type}}/{{.Category}}/1"><span>首页</span></a> </td>
+                           <td><a class="fl" href="/{{.Type}}/{{.Category}}/{{.Previous}}"><span>上一页</span></a></td>
+
+                           {{ range $i, $b := .Before }}
+                           <td><a class="fl" href="/{{$.Type}}/{{$.Category}}/{{$b}}"><span>{{$b}}</span></a></td>
+                           {{ end }}
+
+                           <td> <span class="fl current">{{.Current}}</span> </td>
+                           
+                           {{ range $i, $a := .After }}
+                           <td><a class="fl" href="/{{$.Type}}/{{$.Category}}/{{$a}}"><span>{{$a}}</span></a></td>
+                           {{ end }}
+                                                      
+                           <td> <a class="fl" href="/{{.Type}}/{{.Category}}/{{.Next}}"><span>下一页</span></a> </td>
+                           <td><a class="fl" href="/{{.Type}}/{{.Category}}/{{.End}}"><span>末页</span></a></td>
+
+                        </tr>
+                     </tbody>
+                  </table>
+               </div>
+               {{end}}
+               <!--list paging end -->
+
+               <!-- uuuulist paging -->
+               
+               {{if  (eq .Type "ulist") }}
+               <div id="navcnt">
+                  <table role="presentation">
+                     <tbody>
+                        <tr valign="top">
+                           
+                           <td> <a class="fl" href="/ulist//1"><span>首页</span></a> </td>
+                           <td><a class="fl" href="/ulist/{{.Previous}}"><span>上一页</span></a></td>
+
+                           {{ range $i, $b := .Before }}
+                           <td><a class="fl" href="/ulist//{{$b}}"><span>{{$b}}</span></a></td>
+                           {{ end }}
+
+                           <td> <span class="fl current">{{.Current}}</span> </td>
+                           
+                           {{ range $i, $a := .After }}
+                           <td><a class="fl" href="/ulist/{{$a}}"><span>{{$a}}</span></a></td>
+                           {{ end }}
+                                                      
+                           <td> <a class="fl" href="/ulist/{{.Next}}"><span>下一页</span></a> </td>
+                           <td><a class="fl" href="/ulist/{{.End}}"><span>末页</span></a></td>
+
+                        </tr>
+                     </tbody>
+                  </table>
+               </div>
+               {{end}}
+
+ <!--- user and list paging end -->
 
                <div class="title">
                   <h4>猜你可能喜欢</h4>
@@ -188,8 +376,9 @@
                </div>
                <div class="tags">
                   <ul>
-                     <li><a class="key" href="/search/all/%E7%BE%8E%E5%9B%BD/" target="_blank">美国</a></li>
-                     
+                     {{ range $i, $k := .Keywords}}                     
+                     <li><a class="key" href="/search/all/{{$k.Keyword}}/" target="_blank">{{$k.Keyword}}</a></li>
+                     {{end}}
                   </ul>
                </div>
             </div>

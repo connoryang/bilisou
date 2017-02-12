@@ -1,13 +1,43 @@
 package model
 
 import (
-	"fmt"
-	"database/sql"
-	"github.com/siddontang/go/log"
+//	"fmt"
+//	"database/sql"
+//	"github.com/siddontang/go/log"
 	u "utils"
-	"math/rand"
-	"time"
+//	"math/rand"
+//	"time"
 )
+
+type ShareData struct {
+	Id         int64
+	Album_id   int64
+	Category   int64
+	Data_id  string
+	Feedtime int64
+	File_count int64
+	Filenames string
+	Last_scan int64
+	Like_count int64
+	Share_id   string
+	Size       int64
+	Title     string
+	Uinfo_id   int64
+	Uk         string
+	Uname     string
+	View_count int64
+}
+
+type UserInfo struct {
+	Id           int64
+	Avatar_url   string
+	Fans_count   int64
+	Follow_count int64
+	Intro        string
+	Pubshare_count  int64
+	Uk            string
+	Uname         string
+}
 
 type Share struct {
 	ShareID   string
@@ -16,7 +46,7 @@ type Share struct {
 	FeedType  string //专辑：album 文件或者文件夹：share
 	AlbumID   string
 	Category  string
-	CategoryInt int
+	CategoryInt int64
 	CategoryCN  string
 	FeedTime  string
 	Size      string
@@ -29,6 +59,98 @@ type Share struct {
 	LastScan  string
 }
 
+type User struct {
+	UK          string
+	Uname       string
+	FansCount   string
+	FollowCount string
+	PubshareCount    string
+	AvatarURL   string
+	Intro       string
+}
+
+type Keyword struct {
+	Keyword string
+	Count   int64
+}
+
+func ShareDataToShare(sd ShareData) Share {
+/*	Id         int64
+	Album_id string
+	Category string
+	Data_id  string
+	Feedtime int64
+	File_count int64
+	Filenames string
+	Last_scan int64
+	Like_count int64
+	Share_id   string
+	size       int64
+	title     string
+	Uinfo_id   int64
+	Uk         string
+	Uname     string
+	View_count int64
+*/
+	s := Share{}
+	s.ShareID = sd.Share_id
+	s.DataID  = sd.Data_id
+	s.Title    = sd.Title
+
+	s.AlbumID  = u.IntToStr(sd.Album_id)
+	s.CategoryInt  = sd.Category
+	s.Category = u.CAT_INT_STR[int(sd.Category)]
+	s.CategoryCN = u.CAT_INT_STRCN[int(sd.Category)]
+	s.FeedTime  = u.IntToDateStr(sd.Feedtime)
+	s.Size      = u.SizeToStr(sd.Size)
+	s.Filenames = u.SplitNames(sd.Filenames)
+	s.FileCount = u.IntToStr(sd.File_count)
+	s.UK        = sd.Uk
+	s.Uname     = sd.Uname
+	s.ViewCount = u.IntToStr(sd.View_count)
+	s.LikeCount   = u.IntToStr(sd.Like_count)
+	s.LastScan    = u.IntToDateStr(sd.Last_scan)
+	return s
+}
+
+func UserInfoToUser(uinfo UserInfo) User {
+/*	Id           int64
+	Avatar_url   string
+	Fans_count   int64
+	Follow_count int64
+	Intro        string
+	Pubshare_count  int64
+	Uk            int64
+	Uname         string
+*/
+	user := User{}
+	user.UK         =  uinfo.Uk
+	user.Uname      =  uinfo.Uname
+	user.FansCount  =  u.IntToStr(uinfo.Fans_count)
+	user.FollowCount = u.IntToStr(uinfo.Follow_count)
+	user.PubshareCount   = u.IntToStr(uinfo.Pubshare_count)
+	user.AvatarURL   =  uinfo.Avatar_url
+	user.Intro       =  uinfo.Intro
+	return user
+
+}
+
+func SetCategory(pv *PageVar, category int){
+	pv.CategoryInt = category
+
+	cat, ok := u.CAT_INT_STR[category]
+	if ok {
+		pv.Category = cat
+	}
+
+	cat, ok = u.CAT_INT_STRCN[category]
+	if ok {
+		pv.CategoryCN = cat
+	}
+}
+
+
+/*
 func GetShareBySql(db *sql.DB, s string) ([]Share){
 	var dataid sql.NullString
 	var title sql.NullString
@@ -89,7 +211,7 @@ func GetShareBySql(db *sql.DB, s string) ([]Share){
 
 
 		if category.Valid {
-			sv.CategoryInt = int(category.Int64)
+			sv.CategoryInt = category.Int64
 		} else {
 			sv.CategoryInt = 0
 		}
@@ -182,16 +304,9 @@ func GetFound(db *sql.DB, sql string) int {
 	return found
 }
 
-type User struct {
-	UK          string
-	Uname       string
-	FansCount   string
-	FollowCount string
-	PubshareCount    string
-	AvatarURL   string
-	Intro       string
-}
+*/
 
+/*
 func GetUserBySql(db *sql.DB, s string) ([]User){
 	var UK          sql.NullInt64
 	var Uname       sql.NullString
@@ -282,8 +397,9 @@ func GetUserMaxMINID(db *sql.DB) (int, int) {
 	}
 	return max, min
 }
-
-func GenerateRandomShares(db *sql.DB, size int, category int, keyword string) []Share {
+*/
+/*
+func GenerateRandomShares(db *sql.DB, size int, category int64, keyword string) []Share {
 	max, min := GetShareMaxMinID(db)
 	rs := []string{}
 	for i := 0; i < size; i ++ {
@@ -304,8 +420,9 @@ func GenerateRandomShares(db *sql.DB, size int, category int, keyword string) []
 	shares := GetShareBySql(db, s)
 	return shares
 }
+*/
 
-
+/*
 func GenerateRandomUsers(db *sql.DB, size int) []User {
 	max, min := GetUserMaxMINID(db)
 	rs := []string{}
@@ -327,8 +444,9 @@ func GenerateRandomUsers(db *sql.DB, size int) []User {
 	users := GetUserBySql(db, s)
 	return users
 }
+*/
 
-
+/*
 func UpdateCategory(db *sql.DB) {
 	max, min := GetShareMaxMinID(db)
 	for i:=min; i <= max; i ++ {
@@ -357,5 +475,61 @@ func UpdateCategory(db *sql.DB) {
 			log.Info(us)
 		}
 	}
-	log.Info("ajl")
+
 }
+
+func UpdateUKUname(db * sql.DB) {
+	max, min := GetShareMaxMinID(db)
+	for i:=min; i <= max; i ++ {
+		s := "select uinfo_id from sharedata where id = %d"
+
+		s = fmt.Sprintf(s, i)
+		log.Info(s)
+		rows, err := db.Query(s)
+
+		u.CheckErr(err)
+		var data sql.NullInt64
+
+		for rows.Next() {
+			err = rows.Scan(&data)
+		}
+		if data.Valid {
+			uid := int(data.Int64)
+
+			s = "select uk, uname from uinfo where id = %d"
+
+			s = fmt.Sprintf(s, uid)
+			rows, err := db.Query(s)
+
+			u.CheckErr(err)
+			var data1 sql.NullInt64
+			var data2 sql.NullString
+
+			for rows.Next() {
+				err = rows.Scan(&data1, &data2)
+			}
+
+			var uk int64
+			uk = 0
+			uname := ""
+
+			if data1.Valid {
+				uk = data1.Int64
+			}
+
+			if data2.Valid {
+				uname = data2.String
+			}
+
+			us := "update sharedata set uk = %d, uname = '%s'  where id = %d"
+			us = fmt.Sprintf(us, uk, uname, i)
+			log.Info(us)
+			stmt, _ := db.Prepare(us)
+			stmt.Exec()
+			stmt.Close()
+
+		}
+	}
+}
+
+*/

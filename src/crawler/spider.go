@@ -19,7 +19,7 @@ import (
 	"io"
 	"strings"
 	u "utils"
-	m "model"
+//	m "model"
 )
 
 var db *sql.DB
@@ -192,7 +192,8 @@ func main() {
 	//可以先存几个热门的用户到数据库表avaiuk中 也可以直接GetFollow(2736848922, 0)爬取
 	mode, ConfError = cfg.GetValue("Mode", "mode")
 
-	m.UpdateCategory(db)
+	//m.UpdateCategory(db)
+	//m.UpdateUKUname(db)
 
 	if ConfError != nil {
 		panic("读取mode错误")
@@ -530,7 +531,7 @@ func IndexResource(uk int64) {
 				uinfoId = id
 				checkErr(err)
 				log.Info("insert uinfo，uk:", uk, ",uinfoId:", uinfoId)
-				ok := InsertShare(yd)
+				ok := InsertShare(yd, uk, yd.Uinfo.Uname)
 				if !ok {
 					continue
 				}
@@ -547,7 +548,7 @@ func IndexResource(uk int64) {
 				yd, err = GetData(result)
 				u.CheckErr(err)
 				if yd != nil {
-					ok := InsertShare(yd)
+					ok := InsertShare(yd, uk, yd.Uinfo.Uname)
 					if !ok {
 						break
 					}
@@ -571,7 +572,7 @@ func IndexResource(uk int64) {
 	}
 }
 
-func InsertShare(yd *yundata) bool{
+func InsertShare(yd *yundata, uk int64, uname interface{}) bool{
 
 	for _, v := range yd.Feedata.Records {
 
@@ -597,7 +598,7 @@ func InsertShare(yd *yundata) bool{
 		ls := time.Now().Unix()
 
 		if strings.Compare(v.Feed_type, "share") == 0 {
-			_, err := db.Exec("insert into sharedata(title,share_id,uinfo_id,category, data_id, filenames, feed_time, file_count, size, last_scan) values(?,?,?,?,?,?,?,?,?,?)", v.Title, v.Shareid, uinfoId, v.Category, v.Data_id, filenames, v.Feed_time, len(v.Filelist), size, ls)
+			_, err := db.Exec("insert into sharedata(title,share_id,uinfo_id,category, data_id, filenames, feed_time, file_count, size, last_scan, uk, uname) values(?,?,?,?,?,?,?,?,?,?,?,?)", v.Title, v.Shareid, uinfoId, v.Category, v.Data_id, filenames, v.Feed_time, len(v.Filelist), size, ls, uk, uname)
 			u.CheckErr(err)
 			if err != nil {
 				return false

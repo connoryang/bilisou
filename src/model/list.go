@@ -1,30 +1,60 @@
 package model
 
 import (
-	"fmt"
-	u "utils"
+//	"fmt"
+//	u "utils"
 //	"github.com/siddontang/go/log"
-	"database/sql"
+//	"database/sql"
+	es "gopkg.in/olivere/elastic.v3"
 //	"math"
 )
 
 
-type ListPageVar struct {
-	CategoryInt   int
-	Category string
-	CategoryCN string
-	Page   int
-	Start  int
-	End    int
-	Previous int
-	Next   int
-	Shares []Share
-	RandomUsers  []User
-	Before []int
-	After  []int
+
+func GenerateListPageVar(esclient *es.Client, category int,  page int) *PageVar {
+	pv := PageVar{}
+	if page <= 0 {
+		pv.Type = "lost"
+		pv.RandomShares = GenerateRandomShares(esclient, 0, 10, "")
+		pv.RandomUsers = GenerateRandomUsers(esclient, 24)
+		pv.Keywords = GenerateRandomKeywords(esclient, 30)
+
+		return &pv
+	}
+
+
+	pv.Type = "list"
+
+	boolQuery := es.NewBoolQuery()
+	query := es.NewTermQuery("search", 1)
+	boolQuery.Should(query)
+	if category != 0 {
+		boolQuery.Must(es.NewTermQuery("category", category))
+	}
+	var size int64
+	pv.ListShares, size = SearchShare(esclient, boolQuery, page, 20, "last_scan")
+
+	if len(pv.ListShares) == 0 {
+		//return nil
+		pv.Type = "lost"
+	}
+
+	pv.End = int(size) / 20 + 1
+	pv.Current = page
+
+	SetBA(&pv)
+	SetCategory(&pv, category)
+
+
+	pv.RandomShares = GenerateRandomShares(esclient, 0, 10, "")
+	pv.RandomUsers = GenerateRandomUsers(esclient, 24)
+	pv.Keywords = GenerateRandomKeywords(esclient, 30)
+	return &pv
 }
 
-func GenerateListPageVar(db *sql.DB, c int, p int) *PageVar{
+
+/*
+func GenerateListPageVar1(db *sql.DB, c int, p int) *PageVar{
 
 	if p <= 0 {
 		return nil
@@ -83,3 +113,4 @@ func GenerateListPageVar(db *sql.DB, c int, p int) *PageVar{
 
 	return &pv
 }
+*/
