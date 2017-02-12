@@ -2,7 +2,7 @@
 --
 -- Host: localhost    Database: baidu
 -- ------------------------------------------------------
--- Server version	5.7.15
+-- Server version	5.7.15-log
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -27,7 +27,23 @@ CREATE TABLE `avaiuk` (
   `uk` bigint(20) DEFAULT NULL,
   `flag` int(1) DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `keyword`
+--
+
+DROP TABLE IF EXISTS `keyword`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `keyword` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `keyword` varchar(100) DEFAULT '',
+  `count` int(11) DEFAULT '1',
+  `search` int(11) DEFAULT '1',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -39,23 +55,26 @@ DROP TABLE IF EXISTS `sharedata`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `sharedata` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
-  `title` varchar(255) DEFAULT NULL,
-  `share_id` varchar(100) DEFAULT NULL,
-  `uinfo_id` bigint(20) DEFAULT NULL,
-  `category` char(2) DEFAULT NULL,
-  `album_id` varchar(100) DEFAULT NULL,
-  `last_scan` bigint(11) DEFAULT NULL,
-  `size` int(100) DEFAULT NULL,
-  `view_count` int(11) DEFAULT NULL,
-  `like_count` int(11) DEFAULT NULL,
-  `file_count` int(11) DEFAULT NULL,
-  `filenames` varchar(1000) DEFAULT NULL,
-  `data_id` varchar(100) DEFAULT NULL,
-  `feed_time` bigint(11) DEFAULT NULL,
+  `title` varchar(255) DEFAULT '',
+  `share_id` varchar(100) DEFAULT '',
+  `uinfo_id` bigint(20) DEFAULT '0',
+  `category` int(50) DEFAULT '1',
+  `album_id` int(50) DEFAULT '1',
+  `last_scan` bigint(11) DEFAULT '0',
+  `size` int(100) DEFAULT '0',
+  `view_count` int(11) DEFAULT '0',
+  `like_count` int(11) DEFAULT '0',
+  `file_count` int(11) DEFAULT '0',
+  `filenames` varchar(1000) DEFAULT '',
+  `data_id` varchar(100) DEFAULT '',
+  `feed_time` bigint(11) DEFAULT '0',
+  `uname` varchar(100) DEFAULT '',
+  `uk` varchar(100) DEFAULT '',
+  `search` int(11) DEFAULT '1',
   PRIMARY KEY (`id`),
   KEY `uinfoid` (`uinfo_id`),
   CONSTRAINT `uinfoid` FOREIGN KEY (`uinfo_id`) REFERENCES `uinfo` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=8503 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=13101 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -67,16 +86,17 @@ DROP TABLE IF EXISTS `uinfo`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `uinfo` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
-  `uk` bigint(20) DEFAULT NULL,
-  `uname` varchar(255) DEFAULT NULL,
-  `avatar_url` varchar(255) DEFAULT NULL,
-  `fans_count` int(11) DEFAULT NULL,
-  `follow_count` int(11) DEFAULT NULL,
-  `intro` varchar(1000) DEFAULT NULL,
-  `pubshare_count` int(11) DEFAULT NULL,
+  `uk` varchar(100) DEFAULT '0',
+  `uname` varchar(255) DEFAULT '',
+  `avatar_url` varchar(255) DEFAULT '',
+  `fans_count` int(11) DEFAULT '0',
+  `follow_count` int(11) DEFAULT '0',
+  `intro` varchar(1000) DEFAULT '这个人很懒，什么也没有留下',
+  `pubshare_count` int(11) DEFAULT '0',
+  `search` int(11) DEFAULT '1',
   PRIMARY KEY (`id`),
   KEY `uk` (`uk`)
-) ENGINE=InnoDB AUTO_INCREMENT=33 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=50 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -88,4 +108,4 @@ CREATE TABLE `uinfo` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-02-10  2:46:30
+-- Dump completed on 2017-02-13  2:02:30
