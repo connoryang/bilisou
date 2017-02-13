@@ -163,6 +163,9 @@ func GenerateRandomShares(esclient *es.Client, category int, size int, keyword s
 	} else {
 		max := int(TotalShares) / size
 		rand.Seed(time.Now().UnixNano())
+		if max <= 1 {
+			max = 1
+		}
 		start = rand.Intn(max -1) + 1
 	}
 
@@ -190,8 +193,11 @@ func GenerateRandomUsers(esclient *es.Client, size int) []User{
 		start = 1
 	} else {
 		max := int(TotalUsers) / size
+		if max <= 1 {
+			max = 1
+		}
 		rand.Seed(time.Now().UnixNano())
-		start = rand.Intn(max -1) + 1
+		start = rand.Intn(max)
 	}
 
 	query:= es.NewMatchAllQuery()
@@ -207,6 +213,9 @@ func GenerateRandomKeywords(esclient *es.Client, size int) []Keyword{
 	} else {
 		max := int(TotalKeywords) / size
 		rand.Seed(time.Now().UnixNano())
+		if max <= 1 {
+			max = 1
+		}
 		start = rand.Intn(max -1) + 1
 	}
 
