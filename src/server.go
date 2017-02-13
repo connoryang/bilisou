@@ -285,13 +285,27 @@ func ShowUser(w http.ResponseWriter, r *http.Request) {
 }
 
 
+
 func render(w http.ResponseWriter, data interface{}) {
-	if err != nil {
+	/*if err != nil {
 		log.Error(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
+	}*/
 	if err := templateContent.Execute(w, data); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+
+func BaiduV(w http.ResponseWriter, r *http.Request) {
+	baidu, err := ioutil.ReadFile("templates/baidu_verify_Epcpq89UP2.html")
+	if err == nil {
+		baidudata := template.Must(template.New("tmp").Parse(string(baidu)))
+		if err = baidudata.Execute(w, nil); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	} else {
+		log.Error("failed to open template")
 	}
 }
 
@@ -361,6 +375,9 @@ func main() {
 	mx.HandleFunc("/user/{uk}/{page}/", ShowUser)
 	//server static
 	mx.PathPrefix("/static").Handler(http.FileServer(http.Dir("./")))
+
+	//for baidu
+	mx.HandleFunc("/baidu_verify_Epcpq89UP2.html", BaiduV)
 
 	log.Info("Listening...")
 	http.ListenAndServe(":8080", mx)
