@@ -2,7 +2,7 @@ package main
 
 import (
 
-	"fmt"
+//	"fmt"
 	"github.com/gorilla/mux"
 	"net/http"
 	"html/template"
@@ -11,7 +11,7 @@ import (
 	"github.com/siddontang/go/log"
 	"strconv"
 //	"regexp"
-//	"encoding/json"
+	"encoding/json"
 //	"time"
 //	"github.com/garyburd/redigo/redis"
 	"github.com/Unknwon/goconfig"
@@ -97,6 +97,9 @@ func Init() {
 	m.TotalShares = m.GetTotalShares(esclient)
 	m.TotalUsers = m.GetTotalUsers(esclient)
 
+	///
+	u.InitRedis()
+
 	//templateContent = string(ioutil.ReadFile("templates/index.html"))
 	templ, err := ioutil.ReadFile("templates/index.html")
 	if err == nil {
@@ -108,21 +111,53 @@ func Init() {
 }
 
 
+func SetURL(url string, pv *m.PageVar) error {
+	b, err := json.Marshal(pv)
+	if err != nil {
+		return err
+	}
+	str := string(b)
+	err = u.SetRedis(url, str)
+	log.Info("Set Cache for ", url)
+	return err
+}
+
+func GetURL(url string) (*m.PageVar, error){
+	str, err := u.GetRedis(url)
+	if err != nil {
+		return nil, err
+	}
+
+	pv := m.PageVar{}
+	err = json.Unmarshal([]byte(str), &pv)
+	log.Info("Get Cache for ", url)
+	return &pv, err
+}
+
 
 func Index(w http.ResponseWriter, r *http.Request) {
-	pv := m.GenerateListPageVar(esclient, 0, 1)
-	if pv != nil {
+	pv, err := GetURL("home")
+	if err == nil && pv != nil {
+		log.Info("it's from cache")
+		render(w, pv)
+	} else {
+		pv := m.GenerateListPageVar(esclient, 0, 1)
+		err = SetURL("home", pv)
+		log.Info(err)
 		render(w, pv)
 	}
 
 }
 
-func Greet(w http.ResponseWriter, r *http.Request) {
-	name := mux.Vars(r)["name"]
-	w.Write([]byte(fmt.Sprintf("Hello %s !", name)))
-}
-
 func ListShare(w http.ResponseWriter, r *http.Request) {
+
+	log.Info("url = ", r.URL)
+	pv, err := GetURL(r.URL.Path)
+	if err == nil && pv != nil {
+		log.Info("it's from cache")
+		render(w, pv)
+		return
+	}
 
 	vars := mux.Vars(r)
 	cat := vars["category"]
@@ -141,13 +176,23 @@ func ListShare(w http.ResponseWriter, r *http.Request) {
 		log.Info(err )
 		return
 	}
-	pv := m.GenerateListPageVar(esclient, cati, pp)
+	pv = m.GenerateListPageVar(esclient, cati, pp)
 	if pv != nil {
 		render(w, pv)
 	}
+	SetURL(r.URL.Path, pv)
 }
 
 func ListUsers(w http.ResponseWriter, r *http.Request) {
+
+	log.Info("url = ", r.URL)
+	pv, err := GetURL(r.URL.Path)
+	if err == nil && pv != nil {
+		log.Info("it's from cache")
+		render(w, pv)
+		return
+	}
+
 	vars := mux.Vars(r)
 	p := vars["page"]
 	if p == "" {
@@ -158,14 +203,23 @@ func ListUsers(w http.ResponseWriter, r *http.Request) {
 		log.Info(err )
 		return
 	}
-	pv := m.GenerateUlistPageVar(esclient, pp)
+	pv = m.GenerateUlistPageVar(esclient, pp)
 	if pv != nil {
 		render(w, pv)
 	}
+	SetURL(r.URL.Path, pv)
 }
 
 
 func SearchShare(w http.ResponseWriter, r *http.Request) {
+
+	log.Info("url = ", r.URL)
+	pv, err := GetURL(r.URL.Path)
+	if err == nil && pv != nil {
+		log.Info("it's from cache")
+		render(w, pv)
+		return
+	}
 
 	vars := mux.Vars(r)
 	cat := vars["category"]
@@ -191,12 +245,12 @@ func SearchShare(w http.ResponseWriter, r *http.Request) {
 		log.Info(err )
 		return
 	}
-
 	m.KeywordHit(db,keyword)
-	pv := m.GenerateSearchPageVar(esclient, cati, keyword, pp)
+	pv = m.GenerateSearchPageVar(esclient, cati, keyword, pp)
 	if pv != nil {
 		render(w, pv)
 	}
+	SetURL(r.URL.Path, pv)
 }
 
 func ShowShare(w http.ResponseWriter, r *http.Request) {
@@ -239,7 +293,6 @@ func render(w http.ResponseWriter, data interface{}) {
 	if err := templateContent.Execute(w, data); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-	log.Error(err)
 }
 
 func GetFileData() ([]FileData) {
@@ -271,6 +324,9 @@ func GetFileData() ([]FileData) {
 func main() {
 
 	Init()
+
+	//u.SetURL("aaa", "aabb")
+	//log.Info(u.GetURL("aa"))
 
 	mx := mux.NewRouter()
 

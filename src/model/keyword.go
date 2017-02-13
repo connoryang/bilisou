@@ -1,33 +1,25 @@
 package model
 
 import (
-	"fmt"
+	//"fmt"
 	//	u "utils"
-	"github.com/siddontang/go/log"
+	//"github.com/siddontang/go/log"
 	"database/sql"
 )
 
 func KeywordHit(db *sql.DB, keyword string) {
-	s := "select count from keyword where keyword = '%s'"
-	s = fmt.Sprintf(s, keyword)
-	log.Info(s)
-	rows, _ := db.Query(s)
+	rows, _ := db.Query("select count from keyword where keyword = ?", keyword)
 	if rows.Next() {
 		var count int64
 		rows.Scan(&count)
 		count = count + 1;
-		us := "update keyword set count = %d  where keyword = '%s'"
-		us = fmt.Sprintf(us, count, keyword)
-		log.Info(us)
-		stmt, _ := db.Prepare(us)
-		stmt.Exec()
+
+		stmt, _ := db.Prepare("update keyword set count = ?  where keyword = ?")
+		stmt.Exec(count, keyword)
 		stmt.Close()
 	} else {
-		us := "insert into keyword(keyword) values('%s')"
-		us = fmt.Sprintf(us, keyword)
-		log.Info(us)
-		stmt, _ := db.Prepare(us)
-		stmt.Exec()
+		stmt, _ := db.Prepare("insert into keyword(keyword) values(?)")
+		stmt.Exec(keyword)
 		stmt.Close()
 	}
 }
