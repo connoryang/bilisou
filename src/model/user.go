@@ -20,7 +20,6 @@ func GenerateUserPageVar(esclient *es.Client, uk string, page int) *PageVar {
 	users, size := SearchUser(esclient, query, 0, 10)
 
 	if len(users) < 1 {
-		log.Info("show usre lost")
 		pv.Type = "lost"
 	} else {
 		pv.User = users[0]
