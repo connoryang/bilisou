@@ -3,11 +3,8 @@ package model
 
 import (
 //	"fmt"
-//	"database/sql"
 //	"github.com/siddontang/go/log"
 	u "utils"
-//	"math/rand"
-//	"time"
 )
 
 

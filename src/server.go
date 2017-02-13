@@ -86,6 +86,7 @@ func Init() {
 	u.LISTMAX = 300
 	u.PAGEMAX = 20
 	u.NAVMAX = 5
+	u.RANDMAX = 10
 	u.InitCateMap()
 
 	//init es

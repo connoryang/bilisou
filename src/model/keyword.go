@@ -1,15 +1,11 @@
 package model
 
 import (
-		"fmt"
+	"fmt"
 	//	u "utils"
 	"github.com/siddontang/go/log"
 	"database/sql"
-//	es "gopkg.in/olivere/elastic.v3"
-
 )
-
-
 
 func KeywordHit(db *sql.DB, keyword string) {
 	s := "select count from keyword where keyword = '%s'"

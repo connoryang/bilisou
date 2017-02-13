@@ -5,7 +5,7 @@ import (
 	es "gopkg.in/olivere/elastic.v3"
 //	"encoding/json"
 //	"github.com/siddontang/go/log"
-//	u "utils"
+	u "utils"
 )
 
 
@@ -22,22 +22,23 @@ func GenerateSearchPageVar(esclient *es.Client, category int, keyword string, pa
 
 	query := es.NewMatchQuery("title", keyword)
 	boolQuery.Should(query)
-//	query = es.NewMatchQuery("filenames", keyword)
-//	boolQuery.Should(query)
 
 	if category != 0 {
 		boolQuery.Must(es.NewTermQuery("category", category))
 	}
+
+	start := u.PAGEMAX * (page - 1)
+	if start <= 0 {
+		start = 1
+	}
 	var size int64
-	pv.SearchShares, size = SearchShare(esclient, boolQuery, page, 20, "")
+	pv.SearchShares, size = SearchShare(esclient, boolQuery, start, u.PAGEMAX, "")
 	//log.Info(pv.SearchShares
 
 	if len(pv.SearchShares) == 0 {
-		//return nil
 		pv.Type = "lost"
 	}
 
-	//pv.End = int(size)
 	pv.End = int(size) / 20 + 1
 	pv.Current = page
 
@@ -47,5 +48,4 @@ func GenerateSearchPageVar(esclient *es.Client, category int, keyword string, pa
 	pv.RandomUsers = GenerateRandomUsers(esclient, 24)
 	pv.Keywords = GenerateRandomKeywords(esclient, 30)
 	return &pv
-
 }

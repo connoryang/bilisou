@@ -16,8 +16,8 @@ var TotalUsers int64
 var TotalKeywords int64
 
 
-func SearchShare(esclient *es.Client, query es.Query, page int, pagesize int, sort string)([]Share, int64) {
-	searchResult := Search(esclient, "sharedata", query, page, pagesize, sort)
+func SearchShare(esclient *es.Client, query es.Query, start int, size int, sort string)([]Share, int64) {
+	searchResult := Search(esclient, "sharedata", query, start, size, sort)
 	if searchResult == nil {
 		return nil, 0
 	}
@@ -51,8 +51,8 @@ func SearchShare(esclient *es.Client, query es.Query, page int, pagesize int, so
 	return shares, searchResult.Hits.TotalHits
 }
 
-func SearchUser(esclient *es.Client, query es.Query, page int, pagesize int)([]User, int64) {
-	searchResult := Search(esclient, "uinfo", query , page, pagesize, "")
+func SearchUser(esclient *es.Client, query es.Query, start int, size int)([]User, int64) {
+	searchResult := Search(esclient, "uinfo", query , start, size, "")
 	if searchResult == nil {
 		return nil, 0
 	}
@@ -75,8 +75,8 @@ func SearchUser(esclient *es.Client, query es.Query, page int, pagesize int)([]U
 }
 
 
-func SearchKeyword(esclient *es.Client, query es.Query, page int, pagesize int)([]Keyword, int64) {
-	searchResult := Search(esclient, "keyword", query , page, pagesize, "count")
+func SearchKeyword(esclient *es.Client, query es.Query, start int, size int)([]Keyword, int64) {
+	searchResult := Search(esclient, "keyword", query , start, size, "count")
 	if searchResult == nil {
 		return nil, 0
 	}
@@ -84,14 +84,11 @@ func SearchKeyword(esclient *es.Client, query es.Query, page int, pagesize int)(
 	if searchResult.Hits.TotalHits > 0 {
 		for _, hit := range searchResult.Hits.Hits {
 			k := Keyword{}
-
 			err := json.Unmarshal(*hit.Source, &k)
 			if err != nil {
 				log.Error("Failed to read search result", err)
 			}
-
 			keywords = append(keywords, k)
-
 		}
 	} else {
 		return nil, 0
@@ -99,21 +96,25 @@ func SearchKeyword(esclient *es.Client, query es.Query, page int, pagesize int)(
 	return keywords, searchResult.Hits.TotalHits
 }
 
-
-
-func Search(esclient *es.Client, index string,  query es.Query, page int, pagesize int, sort string) *es.SearchResult {
+func Search(esclient *es.Client, index string,  query es.Query, start int, size int, sort string) *es.SearchResult {
 	// Specify highlighter
+	if start < 0 {
+		start = 0
+	}
+	if size <=0 {
+		size = 1
+	}
+
 	hl := es.NewHighlight()
 	hl = hl.Fields(es.NewHighlighterField("title"))
 	hl = hl.PreTags("<mark>").PostTags("</mark>")
 	hl = hl.Encoder("utf-8")
 
-	start := (page - 1) * pagesize
 	searchService := esclient.Search().
 		Index(index).
 		Highlight(hl).
 		Query(query).
-		From(start).Size(pagesize).
+		From(start).Size(size).
 		Pretty(true)
 
 	if sort != "" {
@@ -157,19 +158,12 @@ func GetTotalUsers(esclient *es.Client) int64 {
 }
 
 func GenerateRandomShares(esclient *es.Client, category int, size int, keyword string) []Share{
-	var start int
-	if TotalShares < int64(size) {
-		start = 1
-	} else {
-		max := int(TotalShares) / size
-		rand.Seed(time.Now().UnixNano())
-		if max <= 1 {
-			max = 1
-		}
-		start = rand.Intn(max -1) + 1
+	rand.Seed(time.Now().UnixNano())
+	max := int(TotalKeywords)
+	if max <=0 {
+		max = 1
 	}
-
-
+	start := rand.Intn(max) + 1
 	boolQuery := es.NewBoolQuery()
 	if keyword != "" {
 		boolQuery.Should(es.NewQueryStringQuery(keyword))
@@ -177,29 +171,21 @@ func GenerateRandomShares(esclient *es.Client, category int, size int, keyword s
 	}
 	query := es.NewTermQuery("search", 1)
 	boolQuery.Should(query)
-
 	if category != 0 {
 		boolQuery.Must(es.NewTermQuery("category", category))
 	}
-
 	randomShares, _ := SearchShare(esclient, boolQuery, start, size, "")
 	return randomShares
 }
 
 
 func GenerateRandomUsers(esclient *es.Client, size int) []User{
-	var start int
-	if TotalUsers < int64(size) {
-		start = 1
-	} else {
-		max := int(TotalUsers) / size
-		if max <= 1 {
-			max = 1
-		}
-		rand.Seed(time.Now().UnixNano())
-		start = rand.Intn(max)
+	rand.Seed(time.Now().UnixNano())
+	max := int(TotalKeywords)
+	if max <=0 {
+		max = 1
 	}
-
+	start := rand.Intn(max) + 1
 	query:= es.NewMatchAllQuery()
 	randomUsers, _ := SearchUser(esclient, query, start, size)
 	return randomUsers
@@ -207,18 +193,12 @@ func GenerateRandomUsers(esclient *es.Client, size int) []User{
 
 
 func GenerateRandomKeywords(esclient *es.Client, size int) []Keyword{
-	var start int
-	if TotalKeywords < int64(size) {
-		start = 1
-	} else {
-		max := int(TotalKeywords) / size
-		rand.Seed(time.Now().UnixNano())
-		if max <= 1 {
-			max = 1
-		}
-		start = rand.Intn(max -1) + 1
+	rand.Seed(time.Now().UnixNano())
+	max := int(TotalKeywords)
+	if max <=0 {
+		max = 1
 	}
-
+	start := rand.Intn(max) + 1
 	query:= es.NewMatchAllQuery()
 	randomKeywords, _ := SearchKeyword(esclient, query, start, size)
 	return randomKeywords

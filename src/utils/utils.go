@@ -28,6 +28,7 @@ import (
 var LISTMAX int
 var PAGEMAX int
 var NAVMAX int
+var RANDMAX int
 
 var CAT_INT_STR map[int]string
 
