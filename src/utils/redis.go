@@ -14,7 +14,7 @@ func InitRedis() {
 }
 
 func SetRedis(url string, html string) error{
-	err := redisclient.Set(url, html, 6*time.Hour).Err()
+	err := redisclient.Set(url, html, 3*time.Minute).Err()
 	return err
 }
 
