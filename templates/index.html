@@ -99,7 +99,7 @@
                   {{ range $i, $s := .SearchShares}}
                   <div class="g">
                      <div class="rc">
-                        <h3 class="r"><a href="/file/{{$s.DataID}}" target="_blank">{{ $s.Title }}</a></h3>
+                        <h3 class="r"><a href="/file/{{$s.DataID}}" target="_blank">{{$s.HTitle}}</a></h3>
                         <div class="s">
                            <div><span class="st"><span>文件大小：</span> {{$s.Size}} </span> <span class="st"><span>文件类型：</span> <span class="u"><a target="_blank" href="/list/{{$s.Category}}">{{$s.CategoryCN}}</a></span></span> <span class="st"><span>文件总数：</span> {{$s.FileCount}}</span> <span class="st"><span>浏览次数：</span> {{$s.ViewCount}}</span> <span class="st"><span>分享用户：</span> <span class="u"><a target="_blank" href="/user/{{$s.UK}}">{{$s.Uname}}</a></span></span> <span class="st"><span>更新日期：</span> {{$s.LastScan}}</span></div>
                         </div>
@@ -138,6 +138,8 @@
 
 
      <!-- ulist end-->
+
+     <!--share start -->
 
                {{if eq .Type "share"}}
                <div class="took">当前位置：{{.Share.Title}}的文件分享页面</div>
@@ -191,10 +193,9 @@
                   </ol>
                </div>
                {{end}}
+               <!-- share end -->
 
-
-<!-- user info -->
-
+               <!-- user info -->
                {{if eq .Type "user"}}               
                <div class="took">当前位置： {{.User.Uname}}的分享页</div>
                <div class="took">最新分享 20 资源</div>
@@ -217,12 +218,9 @@
                   {{ end }}
                </div>
                {{end}}
+               <!-- user info end -->
 
-<!-- user info end -->
-
-
-
-<!-- search paging -->
+               <!-- search paging -->
                {{if eq .Type "search"}}
                <div id="navcnt">
                   <table role="presentation">
@@ -250,12 +248,9 @@
                   </table>
                </div>
                {{end}}
-<!-- search paging -->
+               <!-- search paging -->
 
-
-
-<!-- user  paging -->
-               
+               <!-- user  paging -->
                {{if  (eq .Type "user")  }}
                <div id="navcnt">
                   <table role="presentation">
@@ -283,11 +278,9 @@
                   </table>
                </div>
                {{end}}
+               <!--- User end -->
 
- <!--- User end -->
-
-<!-- list paging -->
-               
+               <!-- list paging -->
                {{if  (eq .Type "list") }}
                <div id="navcnt">
                   <table role="presentation">
@@ -318,7 +311,6 @@
                <!--list paging end -->
 
                <!-- uuuulist paging -->
-               
                {{if  (eq .Type "ulist") }}
                <div id="navcnt">
                   <table role="presentation">
@@ -346,8 +338,7 @@
                   </table>
                </div>
                {{end}}
-
- <!--- user and list paging end -->
+               <!--- user and list paging end -->
 
                <div class="title">
                   <h4>猜你可能喜欢</h4>

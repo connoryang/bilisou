@@ -19,8 +19,12 @@ func GenerateSearchPageVar(esclient *es.Client, category int, keyword string, pa
 	pv.Keyword = keyword
 
 	boolQuery := es.NewBoolQuery()
-	query := es.NewQueryStringQuery(keyword)
-	boolQuery.Must(query)
+
+	query := es.NewMatchQuery("title", keyword)
+	boolQuery.Should(query)
+//	query = es.NewMatchQuery("filenames", keyword)
+//	boolQuery.Should(query)
+
 	if category != 0 {
 		boolQuery.Must(es.NewTermQuery("category", category))
 	}
@@ -42,7 +46,6 @@ func GenerateSearchPageVar(esclient *es.Client, category int, keyword string, pa
 
 	pv.RandomUsers = GenerateRandomUsers(esclient, 24)
 	pv.Keywords = GenerateRandomKeywords(esclient, 30)
-
 	return &pv
 
 }

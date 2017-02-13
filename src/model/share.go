@@ -27,6 +27,7 @@ func GenerateSharePageVar(esclient *es.Client, dataid string) *PageVar {
 
 	pv.RandomSharesSimilar = GenerateRandomShares(esclient, 0, 10, pv.Share.Title)
 	pv.RandomSharesCategory = GenerateRandomShares(esclient, 0, 10, "")
+	pv.UserShares =	GenerateUserShares(esclient, pv.Share.UK, 10)
 
 	pv.RandomShares = GenerateRandomShares(esclient, 0, 10, "")
 	pv.RandomUsers = GenerateRandomUsers(esclient, 24)

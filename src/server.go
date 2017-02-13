@@ -24,6 +24,7 @@ import (
 	m "model"
 	u "utils"
 	es "gopkg.in/olivere/elastic.v3"
+	"io/ioutil"
 )
 
 type FileData struct {
@@ -39,6 +40,7 @@ var redis_Database int
 var ConfError error
 var esclient *es.Client
 var cfg *goconfig.ConfigFile
+var templateContent *template.Template
 
 //Mysql Redis ES init
 func Init() {
@@ -93,6 +95,15 @@ func Init() {
 	}
 	m.TotalShares = m.GetTotalShares(esclient)
 	m.TotalUsers = m.GetTotalUsers(esclient)
+
+	//templateContent = string(ioutil.ReadFile("templates/index.html"))
+	templ, err := ioutil.ReadFile("templates/index.html")
+	if err == nil {
+		templateContent = template.Must(template.New("tmp").Parse(string(templ)))
+	} else {
+		log.Error("failed to open template")
+	}
+
 }
 
 
@@ -100,7 +111,7 @@ func Init() {
 func Index(w http.ResponseWriter, r *http.Request) {
 	pv := m.GenerateListPageVar(esclient, 0, 1)
 	if pv != nil {
-		render(w, "templates/index.html", pv)
+		render(w, pv)
 	}
 
 }
@@ -131,12 +142,11 @@ func ListShare(w http.ResponseWriter, r *http.Request) {
 	}
 	pv := m.GenerateListPageVar(esclient, cati, pp)
 	if pv != nil {
-		render(w, "templates/index.html", pv)
+		render(w, pv)
 	}
 }
 
 func ListUsers(w http.ResponseWriter, r *http.Request) {
-	log.Info("http requst", r)
 	vars := mux.Vars(r)
 	p := vars["page"]
 	if p == "" {
@@ -149,7 +159,7 @@ func ListUsers(w http.ResponseWriter, r *http.Request) {
 	}
 	pv := m.GenerateUlistPageVar(esclient, pp)
 	if pv != nil {
-		render(w, "templates/index.html", pv)
+		render(w, pv)
 	}
 }
 
@@ -163,7 +173,6 @@ func SearchShare(w http.ResponseWriter, r *http.Request) {
 		log.Info(err)
 		return
 	}
-
 
 	keyword := vars["keyword"]
 	if keyword == "" {
@@ -185,7 +194,7 @@ func SearchShare(w http.ResponseWriter, r *http.Request) {
 	m.KeywordHit(db,keyword)
 	pv := m.GenerateSearchPageVar(esclient, cati, keyword, pp)
 	if pv != nil {
-		render(w, "templates/index.html", pv)
+		render(w, pv)
 	}
 }
 
@@ -196,7 +205,7 @@ func ShowShare(w http.ResponseWriter, r *http.Request) {
 	id := vars["dataid"]
 	sp := m.GenerateSharePageVar(esclient, id)
 	if sp != nil {
-		render(w, "templates/index.html", sp)
+		render(w, sp)
 	}
 }
 
@@ -216,18 +225,17 @@ func ShowUser(w http.ResponseWriter, r *http.Request) {
 
 	pv := m.GenerateUserPageVar(esclient, uk, pp)
 	if pv != nil {
-		render(w, "templates/index.html", pv)
+		render(w, pv)
 	}
 }
 
 
-func render(w http.ResponseWriter, filename string, data interface{}) {
-	tmpl, err := template.ParseFiles(filename)
+func render(w http.ResponseWriter, data interface{}) {
 	if err != nil {
 		log.Error(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-	if err := tmpl.Execute(w, data); err != nil {
+	if err := templateContent.Execute(w, data); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	log.Error(err)
@@ -262,9 +270,6 @@ func GetFileData() ([]FileData) {
 func main() {
 
 	Init()
-
-	ks := m.GenerateRandomKeywords(esclient, 10)
-	log.Info(ks)
 
 	mx := mux.NewRouter()
 

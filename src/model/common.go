@@ -7,6 +7,7 @@ import (
 	u "utils"
 //	"math/rand"
 //	"time"
+	t "html/template"
 )
 
 type ShareData struct {
@@ -22,6 +23,7 @@ type ShareData struct {
 	Share_id   string
 	Size       int64
 	Title     string
+	HTitle    string
 	Uinfo_id   int64
 	Uk         string
 	Uname     string
@@ -41,6 +43,7 @@ type UserInfo struct {
 
 type Share struct {
 	ShareID   string
+	HTitle    t.HTML
 	DataID    string
 	Title     string
 	FeedType  string //专辑：album 文件或者文件夹：share
@@ -96,6 +99,7 @@ func ShareDataToShare(sd ShareData) Share {
 	s.ShareID = sd.Share_id
 	s.DataID  = sd.Data_id
 	s.Title    = sd.Title
+	s.HTitle = t.HTML(sd.HTitle)
 
 	s.AlbumID  = u.IntToStr(sd.Album_id)
 	s.CategoryInt  = sd.Category
