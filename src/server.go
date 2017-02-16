@@ -97,8 +97,15 @@ func Init() {
 	m.TotalShares = m.GetTotalShares(esclient)
 	m.TotalUsers = m.GetTotalUsers(esclient)
 
+	m.MAX_USER, m.MIN_USER = m.GetUserMaxMINID(db)
+	m.MAX_SHARE, m.MIN_SHARE = m.GetShareMaxMinID(db)
+	m.MAX_KEYWORD, m.MIN_KEYWORD = m.GetKeywordMaxMinID(db)
+
+
 	///
 	u.InitRedis()
+
+
 
 	//templateContent = string(ioutil.ReadFile("templates/index.html"))
 	templ, err := ioutil.ReadFile("templates/index.html")

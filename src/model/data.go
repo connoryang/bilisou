@@ -158,49 +158,43 @@ func GetTotalUsers(esclient *es.Client) int64 {
 }
 
 func GenerateRandomShares(esclient *es.Client, category int, size int, keyword string) []Share{
-	rand.Seed(time.Now().UnixNano())
-	max := int(TotalKeywords)
-	if max <=0 {
-		max = 1
-	}
-	start := rand.Intn(max) + 1
+
+
 	boolQuery := es.NewBoolQuery()
-	if keyword != "" {
-		boolQuery.Should(es.NewQueryStringQuery(keyword))
-		start = 2
+	for i := 0; i < size; i ++ {
+		rand.Seed(time.Now().UnixNano())
+		id := rand.Intn(MAX_SHARE - MIN_SHARE) + MIN_SHARE
+		boolQuery.Should(es.NewTermQuery("id", id))
 	}
-	query := es.NewTermQuery("search", 1)
-	boolQuery.Should(query)
+
 	if category != 0 {
 		boolQuery.Must(es.NewTermQuery("category", category))
 	}
-	randomShares, _ := SearchShare(esclient, boolQuery, start, size, "")
+	randomShares, _ := SearchShare(esclient, boolQuery, 0, size, "")
 	return randomShares
 }
 
 
 func GenerateRandomUsers(esclient *es.Client, size int) []User{
-	rand.Seed(time.Now().UnixNano())
-	max := int(TotalKeywords)
-	if max <=0 {
-		max = 1
+	boolQuery := es.NewBoolQuery()
+	for i := 0; i < size; i ++ {
+		rand.Seed(time.Now().UnixNano())
+		id := rand.Intn(MAX_USER - MIN_USER) + MIN_USER
+		boolQuery.Should(es.NewTermQuery("id", id))
 	}
-	start := rand.Intn(max) + 1
-	query:= es.NewMatchAllQuery()
-	randomUsers, _ := SearchUser(esclient, query, start, size)
+	randomUsers, _ := SearchUser(esclient, boolQuery, 0, size)
 	return randomUsers
 }
 
 
 func GenerateRandomKeywords(esclient *es.Client, size int) []Keyword{
-	rand.Seed(time.Now().UnixNano())
-	max := int(TotalKeywords)
-	if max <=0 {
-		max = 1
+	boolQuery := es.NewBoolQuery()
+	for i := 0; i < size; i ++ {
+		rand.Seed(time.Now().UnixNano())
+		id := rand.Intn(MAX_KEYWORD - MIN_KEYWORD) + MIN_KEYWORD
+		boolQuery.Should(es.NewTermQuery("id", id))
 	}
-	start := rand.Intn(max) + 1
-	query:= es.NewMatchAllQuery()
-	randomKeywords, _ := SearchKeyword(esclient, query, start, size)
+	randomKeywords, _ := SearchKeyword(esclient, boolQuery, 0, size)
 	return randomKeywords
 }
 

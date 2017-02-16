@@ -1,12 +1,21 @@
 package model
 
 import (
-//	"fmt"
-//	"database/sql"
+	"fmt"
+	"database/sql"
 //	"github.com/siddontang/go/log"
 	u "utils"
 	t "html/template"
 )
+
+//global
+var MIN_USER int
+var MAX_USER int
+var MIN_SHARE int
+var MAX_SHARE int
+var MIN_KEYWORD int
+var MAX_KEYWORD int
+
 
 type ShareData struct {
 	Id         int64
@@ -148,5 +157,68 @@ func SetCategory(pv *PageVar, category int){
 	cat, ok = u.CAT_INT_STRCN[category]
 	if ok {
 		pv.CategoryCN = cat
+	}
+}
+
+
+func GetKeywordMaxMinID(db *sql.DB) (int, int) {
+	var max int
+	var min int
+	sql := "select max(id), min(id) from keyword"
+	rows, err := db.Query(sql)
+	u.CheckErr(err)
+	for rows.Next() {
+		err = rows.Scan(&max, &min)
+	}
+	return max, min
+}
+
+
+func GetShareMaxMinID(db *sql.DB) (int, int) {
+	var max int
+	var min int
+	sql := "select max(id), min(id) from sharedata"
+	rows, err := db.Query(sql)
+	u.CheckErr(err)
+	for rows.Next() {
+		err = rows.Scan(&max, &min)
+	}
+	return max, min
+}
+
+func GetUserMaxMINID(db *sql.DB) (int, int) {
+	var max int
+	var min int
+	sql := "select max(id), min(id) from uinfo"
+	rows, err := db.Query(sql)
+	u.CheckErr(err)
+	for rows.Next() {
+		err = rows.Scan(&max, &min)
+	}
+	return max, min
+}
+
+func UpdateCategory(db *sql.DB) {
+	max, min := GetShareMaxMinID(db)
+	for i:=min; i <= max; i ++ {
+		s := "select title from sharedata where id = %d"
+		s = fmt.Sprintf(s, i)
+		rows, err := db.Query(s)
+		u.CheckErr(err)
+		var tt sql.NullString
+		for rows.Next() {
+			err = rows.Scan(&tt)
+		}
+		if tt.Valid {
+			c := u.GetCategoryFromName(tt.String)
+			us := "update sharedata set category = ? where id = ?"
+			//us = fmt.Sprintf(us, c, i)
+			//db.Query(us)
+			stmt, _ := db.Prepare(us)
+			stmt.Exec(c,i)
+			stmt.Close()
+			//res.RowsAffected()
+//			log.Info(us)
+		}
 	}
 }
