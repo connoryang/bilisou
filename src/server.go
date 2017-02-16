@@ -143,9 +143,9 @@ func GetURL(url string) (*m.PageVar, error){
 
 
 func Index(w http.ResponseWriter, r *http.Request) {
+	log.Info("ip = ", r.RemoteAddr, ", url = ", r.URL)
 	pv, err := GetURL("home")
 	if err == nil && pv != nil {
-		log.Info("it's from cache")
 		render(w, pv)
 	} else {
 		pv := m.GenerateListPageVar(esclient, 0, 1)
@@ -158,7 +158,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 
 func ListShare(w http.ResponseWriter, r *http.Request) {
 
-	log.Info("url = ", r.URL)
+	log.Info("ip = ", r.RemoteAddr, ", url = ", r.URL)
 	pv, err := GetURL(r.URL.Path)
 	if err == nil && pv != nil {
 		log.Info("it's from cache")
@@ -191,7 +191,7 @@ func ListShare(w http.ResponseWriter, r *http.Request) {
 }
 
 func ListUsers(w http.ResponseWriter, r *http.Request) {
-
+	log.Info("ip = ", r.RemoteAddr, ", url = ", r.URL)
 	log.Info("url = ", r.URL)
 	pv, err := GetURL(r.URL.Path)
 	if err == nil && pv != nil {
@@ -219,8 +219,7 @@ func ListUsers(w http.ResponseWriter, r *http.Request) {
 
 
 func SearchShare(w http.ResponseWriter, r *http.Request) {
-
-	log.Info("url = ", r.URL)
+	log.Info("ip = ", r.RemoteAddr, ", url = ", r.URL)
 	pv, err := GetURL(r.URL.Path)
 	if err == nil && pv != nil {
 		log.Info("it's from cache")
@@ -261,7 +260,7 @@ func SearchShare(w http.ResponseWriter, r *http.Request) {
 }
 
 func ShowShare(w http.ResponseWriter, r *http.Request) {
-
+	log.Info("ip = ", r.RemoteAddr, ", url = ", r.URL)
 	// break down the variables for easier assignment
 	vars := mux.Vars(r)
 	id := vars["dataid"]
@@ -272,6 +271,7 @@ func ShowShare(w http.ResponseWriter, r *http.Request) {
 }
 
 func ShowUser(w http.ResponseWriter, r *http.Request) {
+	log.Info("ip = ", r.RemoteAddr, ", url = ", r.URL)
 	vars := mux.Vars(r)
 	uk := vars["uk"]
 	p := vars["page"]
