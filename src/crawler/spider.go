@@ -19,7 +19,7 @@ import (
 	"io"
 	"strings"
 	u "utils"
-	m "model"
+	//"model"
 )
 
 var db *sql.DB
@@ -192,7 +192,7 @@ func main() {
 	//可以先存几个热门的用户到数据库表avaiuk中 也可以直接GetFollow(2736848922, 0)爬取
 	mode, ConfError = cfg.GetValue("Mode", "mode")
 
-	m.UpdateCategory(db)
+	//m.UpdateCategory(db)
 	//m.UpdateUKUname(db)
 
 	if ConfError != nil {
