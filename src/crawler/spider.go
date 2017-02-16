@@ -213,15 +213,13 @@ func main() {
 			log.Info("从数据库存储uk开始爬取")
 			for{
 				rows, _ := db.Query("select id,flag,uk from avaiuk where flag=0  limit 1")
-				if rows.Next() {
+				for rows.Next() {
 					rows.Scan(&id, &flag, &uk)
 					stmt, _ := db.Prepare("update avaiuk set flag=1 where id=?")
 					stmt.Exec(id)
 					log.Info("Select new uk:", uk)
 					stmt.Close()
 					GetFollow(uk, 0, true)
-				}else {
-					break
 				}
 			}
 
@@ -514,7 +512,7 @@ func IndexResource(uk int64) {
 
 			s := "SELECT * from uinfo where uk = " + u.IntToStr(uk)
 			rows, _ := db.Query(s)
-			if rows.Next() {
+			for rows.Next() {
 				log.Info("skip user ", uk)
 				continue
 			}
@@ -579,7 +577,7 @@ func InsertShare(yd *yundata, uk int64, uname interface{}) bool{
 
 		s := "SELECT * from sharedata where data_id = '" + v.Data_id + "'"
 		rows, _ := db.Query(s)
-		if rows.Next() {
+		for rows.Next() {
 			log.Info("skip share ", v.Data_id)
 			continue
 		}
