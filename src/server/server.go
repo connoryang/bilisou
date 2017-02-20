@@ -89,6 +89,8 @@ func Init() {
 	u.RANDMAX = 10
 	u.InitCateMap()
 
+	u.InitJieba()
+
 	//init es
 	esclient, err = es.NewClient()
 	if err != nil {
@@ -104,8 +106,6 @@ func Init() {
 
 	///
 	u.InitRedis()
-
-
 
 	//templateContent = string(ioutil.ReadFile("templates/index.html"))
 	templ, err := ioutil.ReadFile("templates/index.html")

@@ -141,8 +141,6 @@ func GetTotalShares(esclient *es.Client) int64 {
 }
 
 func GetTotalKeywords(esclient *es.Client) int64 {
-
-
 	query:= es.NewMatchAllQuery()
 	var size int64
 	_, size = SearchKeyword(esclient, query, 1, 1)
@@ -158,8 +156,6 @@ func GetTotalUsers(esclient *es.Client) int64 {
 }
 
 func GenerateRandomShares(esclient *es.Client, category int, size int, keyword string) []Share{
-
-
 	boolQuery := es.NewBoolQuery()
 	for i := 0; i < size; i ++ {
 		rand.Seed(time.Now().UnixNano())

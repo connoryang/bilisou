@@ -3,6 +3,7 @@ package utils
 import (
 
 	"fmt"
+	"github.com/yanyiwu/gojieba"
 	//	_ "github.com/go-sql-driver/mysql"
 	//sql "database/sql"
 	//	"io/ioutil"
@@ -140,4 +141,12 @@ func GetCategoryFromName(name string) int {
 		return 6
 	}
 	return 7
+}
+
+
+
+//for seo
+var Jb *gojieba.Jieba
+func InitJieba() {
+	Jb = gojieba.NewJieba()
 }

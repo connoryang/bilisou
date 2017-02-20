@@ -6,6 +6,7 @@ import (
 //	"github.com/siddontang/go/log"
 	u "utils"
 	t "html/template"
+//	"github.com/russross/blackfriday"
 )
 
 //global
@@ -67,6 +68,7 @@ type Share struct {
 	ViewCount string
 	LikeCount string
 	LastScan  string
+	SeoKeywords []string
 }
 
 type User struct {
@@ -121,6 +123,13 @@ func ShareDataToShare(sd ShareData) Share {
 	s.ViewCount = u.IntToStr(sd.View_count)
 	s.LikeCount   = u.IntToStr(sd.Like_count)
 	s.LastScan    = u.IntToDateStr(sd.Last_scan)
+
+	if s.Title != "" {
+		keywords := u.Jb.CutForSearch(s.Title, true)
+		for _, keyword := range keywords {
+			s.SeoKeywords = append(s.SeoKeywords, keyword)
+		}
+	}
 	return s
 }
 

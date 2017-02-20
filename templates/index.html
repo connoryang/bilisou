@@ -2,7 +2,10 @@
    <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
-      <title>{{.Share.Title}} - 哔哩搜 - 百度网盘搜索引擎</title>
+      <meta name="Description" content="{{.Share.Title}} - 哔哩搜 - 最快最全的百度网盘搜索引擎">
+      <meta name="Keywords" content="哔哩搜, 百度网盘, {{ range $i, $k := .Share.SeoKeywords}}{{$k}}, {{end}}" />
+
+      <title>{{.Share.Title}} - 哔哩搜 - 最快最全的百度网盘搜索引擎</title>
       <meta name="description" content="">
       <link href="/static/img/search.ico" rel="shortcut icon">
       <link rel="stylesheet" href="http://bdimg.share.baidu.com/static/api/css/share_style0_32.css?v=4413acf0.css">
@@ -18,12 +21,26 @@
             document.getElementById("searchbutton").click(); //调用登录按钮的登录事件
          }
       </script>
+      <script>
+         (function(){
+            var bp = document.createElement('script');
+            var curProtocol = window.location.protocol.split(':')[0];
+            if (curProtocol === 'https') {
+               bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+            }
+            else {
+               bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+            }
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(bp, s);
+         })();
+      </script>
    </head>
    <body data-gr-c-s-loaded="true" onkeydown="keyLogin();">
       <div class="container">
          <div class="top">
             <div class="logo">
-               <h1><a href="/" title="找片找资源上哔哩搜，速度最快资源最多的网盘搜索神器" id="logo" data-hveid="3"><img src="/static/img/logo.png" alt="bilisou.com"></a></h1>
+               <h1><a href="/" title="找片找资源请来哔哩搜，最快最全的百度网盘搜索引擎" id="logo" data-hveid="3"><img src="/static/img/logo.png" alt="bilisou.com"></a></h1>
             </div>
             <div class="form">
                <!--<form class="tsf" action="/all" style="overflow:visible" method="GET" name="f" onsubmit="return q.value!=''" role="search"> -->
@@ -54,15 +71,6 @@
          </div>
          <div class="main">
             <div class="content">
-               <div class="sep15">
-                  <div class="share-bar">
-                     <span class="share-hint">好东西记得分享：</span>
-                     <div class="bdsharebuttonbox bdshare-button-style0-32" data-bd-bind="1486665154621"><a title="收藏到QQ空间" href="#" class="bds_qzone" data-cmd="qzone"></a> <a title="收藏到新浪微博" href="#" class="bds_tsina" data-cmd="tsina"></a> <a title="收藏到腾讯微博" href="#" class="bds_tqq" data-cmd="tqq"></a> <a title="收藏到百度新首页" href="#" class="bds_bdhome" data-cmd="bdhome"></a> <a title="收藏到百度空间" href="#" class="bds_hi" data-cmd="hi"></a> <a title="收藏到百度贴吧" href="#" class="bds_tieba" data-cmd="tieba"></a> <a title="收藏到人人网" href="#" class="bds_renren" data-cmd="renren"></a> <a title="收藏到腾讯朋友" href="#" class="bds_tqf" data-cmd="tqf"></a> <a title="收藏到百度搜藏" href="#" class="bds_baidu" data-cmd="baidu"></a> <a title="收藏到QQ收藏" href="#" class="bds_qq" data-cmd="qq"></a> <a title="收藏到豆瓣" href="#" class="bds_douban" data-cmd="douban"></a> <a title="复制网址" href="#" class="bds_copy" data-cmd="copy"></a> <a class="bds_more" data-cmd="more"></a> <a class="bds_count" data-cmd="count" title="累计分享0次">0</a></div>
-                     <br class="bothall">
-                  </div>
-                  <script>window._bd_share_config={"common":{"bdText":"哔哩搜，百度网盘资源搜索。视频，小说，音乐，图片和软件等各类资源下载，应有尽有，来看看吧！","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"0","bdSize":"32"},"share":{}};</script>
-               </div>
-
 
 <!--- list page --->
                {{if eq .Type  "lost"}}
@@ -376,7 +384,8 @@
          </div>
          <div class="footer">
            
-            <div class="finner"><span class="flink">找资源上哔哩搜，速度最快资源最多的网盘搜索神器，日常必备的网盘搜索工具。</span> <span class="flink">本站仅提供百度云盘资源搜索服务，不存放任何实质内容。如有侵权内容请联系百度云盘或新浪微盘，源资源删除后本站的链接将自动失效。</span></div>
+            <div class="finner"><span class="flink">找资源上哔哩搜，速度最快资源最多的网盘搜索神器，日常必备的网盘搜索工具。</span> <span class="flink">本站仅提供百度云盘资源搜索服务，信息均来源于百度网盘。</span></div>
+            <span><a class="flink" target="_blank" href="http://www.wenti.info" title="IT问题网">IT问题网</a> <a class="flink" target="_blank" href="http://www.piansoso.com/">片搜搜</a> <a class="flink" target="_blank" href="http://linuxman.cn/">Linuxman</a> </span>
          </div>
       </div>
        </body>
