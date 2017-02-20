@@ -15,3 +15,6 @@ database=0
 [Log]
 #["trace", "debug", "info", "warn", "error", "fatal"]
 logLevel=info
+[Server]
+ip=127.0.0.1
+port=8080

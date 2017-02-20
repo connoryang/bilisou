@@ -41,6 +41,8 @@ var ConfError error
 var esclient *es.Client
 var cfg *goconfig.ConfigFile
 var templateContent *template.Template
+var Addr string
+var Port string
 
 //Mysql Redis ES init
 func Init() {
@@ -103,6 +105,17 @@ func Init() {
 	m.MAX_SHARE, m.MIN_SHARE = m.GetShareMaxMinID(db)
 	m.MAX_KEYWORD, m.MIN_KEYWORD = m.GetKeywordMaxMinID(db)
 
+
+	Addr, ConfError = cfg.GetValue("Server", "ip")
+	if ConfError != nil {
+		log.Error("读取数据库server错误")
+	}
+
+
+	Port, ConfError = cfg.GetValue("Server", "port")
+	if ConfError != nil {
+		log.Error("读取数据库port错误")
+	}
 
 	///
 	u.InitRedis()
@@ -386,7 +399,7 @@ func main() {
 	//for baidu
 	mx.HandleFunc("/baidu_verify_Epcpq89UP2.html", BaiduV)
 
-	log.Info("Listening...")
-	http.ListenAndServe(":8080", mx)
+	log.Info("Listening at ", Addr, ":", Port)
+	http.ListenAndServe(Addr +":" + Port, mx)
 
 }
