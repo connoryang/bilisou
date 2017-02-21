@@ -137,13 +137,13 @@ func SetURL(url string, pv *m.PageVar) error {
 		return err
 	}
 	str := string(b)
-	err = u.SetRedis(url, str)
+	err = u.SetRedis("bilisou" + url, str)
 	log.Info("Set Cache for ", url)
 	return err
 }
 
 func GetURL(url string) (*m.PageVar, error){
-	str, err := u.GetRedis(url)
+	str, err := u.GetRedis("bilisou" + url)
 	if err != nil {
 		return nil, err
 	}
