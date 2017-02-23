@@ -2,7 +2,7 @@ package main
 
 import (
 
-//	"fmt"
+	"fmt"
 	"github.com/gorilla/mux"
 	"net/http"
 	"html/template"
@@ -184,7 +184,7 @@ func ListShare(w http.ResponseWriter, r *http.Request) {
 	cati, ok:= u.CAT_STR_INT[cat]
 	if !ok {
 		log.Info(err)
-		return
+		cati = -1
 	}
 
 	p := vars["page"]
@@ -245,13 +245,12 @@ func SearchShare(w http.ResponseWriter, r *http.Request) {
 	cati, ok:= u.CAT_STR_INT[cat]
 	if !ok {
 		log.Info(err)
-		return
+		cati = -1
 	}
 
 	keyword := vars["keyword"]
 	if keyword == "" {
 		log.Info(err)
-		return
 	}
 
 	p := vars["page"]
@@ -295,13 +294,25 @@ func ShowUser(w http.ResponseWriter, r *http.Request) {
 	pp, err:=strconv.Atoi(p)
 	if err != nil {
 		log.Info(err )
-		return
+		pp = 1
 	}
 
 	pv := m.GenerateUserPageVar(esclient, uk, pp)
 	if pv != nil {
 		render(w, pv)
 	}
+}
+
+
+func NotFound(w http.ResponseWriter, r *http.Request) {
+	log.Info("ip = ", r.RemoteAddr, ", url = ", r.URL)
+	pv := m.GenerateListPageVar(esclient, 0, 1)
+	pv.Type = "lost"
+	w.WriteHeader(http.StatusNotFound)
+	if pv != nil {
+		render(w, pv)
+	}
+	SetURL(r.URL.Path, pv)
 }
 
 
@@ -317,42 +328,9 @@ func render(w http.ResponseWriter, data interface{}) {
 }
 
 
-func BaiduV(w http.ResponseWriter, r *http.Request) {
-	baidu, err := ioutil.ReadFile("templates/baidu_verify_Epcpq89UP2.html")
-	if err == nil {
-		baidudata := template.Must(template.New("tmp").Parse(string(baidu)))
-		if err = baidudata.Execute(w, nil); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
-	} else {
-		log.Error("failed to open template")
-	}
-}
-
-func GetFileData() ([]FileData) {
-	db, err := sql.Open("mysql", "root@/baidu?charset=utf8")
-	u.CheckErr(err)
-
-	// query
-	rows, err := db.Query("SELECT id, uinfo_id, title FROM sharedata limit 0, 100")
-	u.CheckErr(err)
-
-	fds := []FileData{}
-
-	for rows.Next() {
-		var id int
-		var uid int
-		var title string
-		err = rows.Scan(&id, &uid, &title)
-		u.CheckErr(err)
-		fd := FileData {
-			ID : id,
-			UID : uid,
-			Title : title,
-		}
-		fds = append(fds, fd)
-	}
-	return fds
+func Robots(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, "User-agent: *\nDisallow:\n")
 }
 
 func main() {
@@ -397,7 +375,10 @@ func main() {
 	mx.PathPrefix("/static").Handler(http.FileServer(http.Dir("./")))
 
 	//for baidu
-	mx.HandleFunc("/baidu_verify_Epcpq89UP2.html", BaiduV)
+	mx.HandleFunc("/robots.txt", Robots)
+
+	//not found
+	mx.NotFoundHandler = http.HandlerFunc(NotFound)
 
 	log.Info("Listening at ", Addr, ":", Port)
 	http.ListenAndServe(Addr +":" + Port, mx)
