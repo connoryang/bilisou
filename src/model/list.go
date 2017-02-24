@@ -44,6 +44,9 @@ func GenerateListPageVar(esclient *es.Client, category int,  page int) *PageVar 
 	}
 
 	pv.End = int(size) / 20 + 1
+	if pv.End > 30000 {
+		pv.End = 30000
+	}
 	pv.Current = page
 
 	SetBA(&pv)

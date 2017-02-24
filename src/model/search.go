@@ -40,6 +40,9 @@ func GenerateSearchPageVar(esclient *es.Client, category int, keyword string, pa
 	}
 
 	pv.End = int(size) / 20 + 1
+	if pv.End > 30000 {
+		pv.End = 30000
+	}
 	pv.Current = page
 
 	SetBA(&pv)
