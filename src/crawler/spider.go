@@ -582,7 +582,7 @@ func InsertShare(yd *yundata, uk int64, uname interface{}) bool{
 
 		v.Feed_time = v.Feed_time / 1000
 		ls := time.Now().Unix()
-
+		time.Sleep(time.Second)
 		if strings.Compare(v.Feed_type, "share") == 0 {
 			_, err := db.Exec("insert into sharedata(title,share_id,uinfo_id,category, data_id, filenames, feed_time, file_count, size, last_scan, uk, uname) values(?,?,?,?,?,?,?,?,?,?,?,?)", v.Title, v.Shareid, uinfoId, v.Category, v.Data_id, filenames, v.Feed_time, len(v.Filelist), size, ls, uk, uname)
 			u.CheckErr(err)
