@@ -517,7 +517,7 @@ func IndexResource(uk int64) {
 				res, err := db.Exec("INSERT into uinfo(uk,uname,avatar_url, pubshare_count, fans_count, follow_count) values(?,?,?,?,?,?)", uk, yd.Uinfo.Uname, yd.Uinfo.Avatar_url, yd.Uinfo.Pubshare_count, yd.Uinfo.Fans_count, yd.Uinfo.Follow_count)
 				if err != nil {
 					log.Warn("Failed to insert user ", uk, err)
-					break
+					return
 				}
 
 				id, err := res.LastInsertId()
@@ -527,7 +527,7 @@ func IndexResource(uk int64) {
 				log.Info("insert uinfo，uk:", uk, ",uinfoId:", uinfoId)
 				ok := InsertShare(yd, uk, yd.Uinfo.Uname)
 				if !ok {
-					break
+					return
 				}
 
 
@@ -544,7 +544,7 @@ func IndexResource(uk int64) {
 				if yd != nil {
 					ok := InsertShare(yd, uk, yd.Uinfo.Uname)
 					if !ok {
-						break
+						return
 					}
 				} else {
 					i--
@@ -588,7 +588,7 @@ func InsertShare(yd *yundata, uk int64, uname interface{}) bool{
 			u.CheckErr(err)
 			if err != nil {
 				log.Warn("Failed to insert data", v.Data_id, err)
-				continue
+				return false
 			}
 			log.Info("insert share ", v.Data_id)
 		} else if strings.Compare(v.Feed_type, "album") == 0 {
@@ -596,7 +596,7 @@ func InsertShare(yd *yundata, uk int64, uname interface{}) bool{
 			u.CheckErr(err)
 			if err != nil {
 				log.Warn("Failed to insert data", v.Data_id, err)
-				continue
+				return false
 			}
 			log.Info("insert album", v.Data_id)
 		}
