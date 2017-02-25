@@ -231,6 +231,17 @@ func main() {
 }
 
 func checkKeyExist(key interface{}) bool {
+	id := -1
+	var flag bool
+	err := db.QueryRow("select id from user where uk = ?", key).Scan(&id)
+	if err != nil && id != -1 {
+		log.Warn("skip user uk = ", key, "id = ", id)
+		flag = true
+	} else {
+		flag = false
+	}
+	return flag
+/*
 	if hasIndexKeys != nil {
 		if ok := sliceKeyExist(hasIndexKeys, fmt.Sprintf("%v", key)); ok {
 			return true
@@ -239,7 +250,7 @@ func checkKeyExist(key interface{}) bool {
 		}
 	} else {
 		return RedisKeyExists(key)
-	}
+	}*/
 }
 func sliceKeyExist(s []string, key string) bool {
 	for _, v := range s {
