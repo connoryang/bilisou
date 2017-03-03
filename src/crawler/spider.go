@@ -338,6 +338,8 @@ func GetFollow(uk int64, start int, index bool) {
 		}
 		RecursionFollow(uk, start, true)
 	} else {
+		stmt, _ := db.Prepare("update avaiuk set flag=1 where uk=?")
+		stmt.Exec(uk)
 		if start > 0 {
 			RecursionFollow(uk, start, false)
 		} else {
