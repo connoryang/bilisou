@@ -341,7 +341,7 @@ func GetFollow(uk int64, start int, index bool) {
 		if (index) {
 			IndexResource(uk)
 		}
-		RecursionFollow(uk, start, true)
+		//RecursionFollow(uk, start, true)
 	} else {
 		if start > 0 {
 //			RecursionFollow(uk, start, false)
